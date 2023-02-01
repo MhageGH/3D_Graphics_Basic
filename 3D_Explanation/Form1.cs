@@ -14592,10 +14592,24 @@ namespace _3D_Explanation
         private void Form1_Paint(object senderf, PaintEventArgs e)
         {
             float scale = 50f;                              // Šg‘åŒW”
-            (float X, float Y) offset = new(200f, 500f);    // •½sˆÚ“®‚Ì—Ê
-            for (int j = 0; j < faces.GetLength(0); ++j) for (int i = 0; i < 3; ++i) e.Graphics.DrawLine(Pens.Black,
-                new PointF(scale * vertices[faces[j, i]].X + offset.X, -scale * vertices[faces[j, i]].Y + offset.Y),
-                new PointF(scale * vertices[faces[j, (i + 1) % 3]].X + offset.X, -scale * vertices[faces[j, (i + 1) % 3]].Y + offset.Y));
+            (float X, float Y) offset = new(350f, 450f);    // •½sˆÚ“®‚Ì—Ê
+            float theta = 0.5f;                             // ‰ñ“]Šp“x
+            for (int i = 0; i < faces.GetLength(0); ++i)
+            {
+                for (int j = 0; j < 3; ++j)
+                {
+                    var vs = new (float X, float Y, float Z)[2];
+                    for (int k = 0; k < 2; ++k)
+                    {
+                        var v = vertices[faces[i, (j + k) % 3]];
+                        vs[k].X = v.X * MathF.Cos(theta) - v.Y * MathF.Sin(theta);
+                        vs[k].Y = v.X * MathF.Sin(theta) + v.Y * MathF.Cos(theta);
+                    }
+                    e.Graphics.DrawLine(Pens.Black,
+                        new PointF(scale * vs[0].X + offset.X, -scale * vs[0].Y + offset.Y),
+                        new PointF(scale * vs[1].X + offset.X, -scale * vs[1].Y + offset.Y));
+                }
+            }
         }
     }
 }
