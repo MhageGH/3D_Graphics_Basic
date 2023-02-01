@@ -14587,29 +14587,35 @@ namespace _3D_Explanation
             {5622, 5623, 5693},
             {5623, 5694, 5695}
         };                      // ’¸“_”Ô†‚Ì‘g‚İ‡‚í‚¹
+        float thetaY = 0;                                           // Y²‰ñ“]Šp“x
+        float thetaZ = 0.5f;                                        // Z²‰ñ“]Šp“x
+        float scale = 50f;                                          // Šg‘åŒW”
+        (float X, float Y, float Z) offset = new(350f, 450f, 0);    // •½sˆÚ“®‚Ì—Ê
 
         // XYÀ•W‚¾‚¯‚ğg‚Á‚Ä’¸“_‚Æ’¸“_‚ğŒ‹‚Ô•Ó‚ğü‚Å•`‚­BƒtƒH[ƒ€‚ÆMMD‚ÌÀ•W‚ÍY•ûŒü‚ÌŒü‚«‚ª‹t‚È‚Ì‚Å”½“]B
         private void Form1_Paint(object senderf, PaintEventArgs e)
         {
-            float scale = 50f;                              // Šg‘åŒW”
-            (float X, float Y) offset = new(350f, 450f);    // •½sˆÚ“®‚Ì—Ê
-            float theta = 0.5f;                             // ‰ñ“]Šp“x
-            for (int i = 0; i < faces.GetLength(0); ++i)
+            var vs = new (float X, float Y, float Z)[vertices.Length];  // ˆÚ“®Œã‚Ì’¸“_
+            for (int i = 0; i < vs.Length; ++i)
             {
-                for (int j = 0; j < 3; ++j)
-                {
-                    var vs = new (float X, float Y, float Z)[2];
-                    for (int k = 0; k < 2; ++k)
-                    {
-                        var v = vertices[faces[i, (j + k) % 3]];
-                        vs[k].X = v.X * MathF.Cos(theta) - v.Y * MathF.Sin(theta);
-                        vs[k].Y = v.X * MathF.Sin(theta) + v.Y * MathF.Cos(theta);
-                    }
-                    e.Graphics.DrawLine(Pens.Black,
-                        new PointF(scale * vs[0].X + offset.X, -scale * vs[0].Y + offset.Y),
-                        new PointF(scale * vs[1].X + offset.X, -scale * vs[1].Y + offset.Y));
-                }
+                (float X, float Y, float Z) v = new(vertices[i].X, vertices[i].Y, vertices[i].Z);
+                v = new(v.Z * MathF.Sin(thetaY) + v.X * MathF.Cos(thetaY), v.Y, v.Z * MathF.Cos(thetaY) - v.X * MathF.Sin(thetaY));// Y²‰ñ“]
+                v = new(v.X * MathF.Cos(thetaZ) - v.Y * MathF.Sin(thetaZ), v.X * MathF.Sin(thetaZ) + v.Y * MathF.Cos(thetaZ), v.Z);// Z²‰ñ“]
+                v = new(scale * v.X, -scale * v.Y, scale * v.Z);        // Šg‘å
+                v = new(v.X + offset.X, v.Y + offset.Y, v.Z + offset.Z);// •½sˆÚ“®
+                vs[i] = new(v.X, v.Y, v.Z);
             }
+            for (int i = 0; i < faces.GetLength(0); ++i)
+                for (int j = 0; j < 3; ++j)
+                    e.Graphics.DrawLine(Pens.Black,
+                        new PointF(vs[faces[i, j]].X, vs[faces[i, j]].Y),
+                        new PointF(vs[faces[i, (j + 1) % 3]].X, vs[faces[i, (j + 1) % 3]].Y));
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            thetaY += 0.1f; // ˆê’èŠÔ‚²‚Æ‚ÉY²‰ñ“]Šp“x‚ğ‘‚â‚·
+            Invalidate();   // Ä•`‰æ
         }
     }
 }
