@@ -5,7 +5,9 @@ VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WireFrame", "3D_Explanation\WireFrame.csproj", "{A9F56E1E-4434-4382-A48A-C7D009B96E41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Triangle", "Triangle\Triangle.csproj", "{DF9B6233-0474-4AFD-8588-7BB56328D1A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Triangle", "Triangle\Triangle.csproj", "{DF9B6233-0474-4AFD-8588-7BB56328D1A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZBuffer", "ZBuffer\ZBuffer.csproj", "{DF30DA9A-0053-465E-BB23-0928D8D07DF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{DF9B6233-0474-4AFD-8588-7BB56328D1A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF9B6233-0474-4AFD-8588-7BB56328D1A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF9B6233-0474-4AFD-8588-7BB56328D1A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF30DA9A-0053-465E-BB23-0928D8D07DF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF30DA9A-0053-465E-BB23-0928D8D07DF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF30DA9A-0053-465E-BB23-0928D8D07DF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF30DA9A-0053-465E-BB23-0928D8D07DF4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
