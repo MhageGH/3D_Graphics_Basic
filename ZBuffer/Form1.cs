@@ -22,11 +22,11 @@ namespace ZBuffer
                 var vs = new (float X, float Y, float Z)[faces.GetLength(1)];
                 for (int i = 0; i < vs.Length; ++i) vs[i] = transformedVertices[faces[m, i]];
                 vs = vs.OrderBy(v => v.Y).ToArray();                                    // Y0≦Y1≦Y2となるように並び替え
-                if (vs[0] == vs[2]) return;                                             // 三角形じゃない
+                if (MathF.Abs(vs[0].Y - vs[2].Y) < 0.1f) return;                        // 三角形じゃない
                 float k = GetLightDirectness(vs);                                       // 光が三角形に真っすぐに当たっている割合を取得
                 for (int y = (int)vs[0].Y; y < vs[2].Y; y++)                            // 三角形を覆う全ての横線について行う
                 {
-                    var p = (y >= vs[1].Y && (vs[1] != vs[2])) ? 1 : 0;
+                    int p = (MathF.Abs(vs[0].Y - vs[1].Y) < 0.1f || y >= vs[1].Y) ? 1 : 0;
                     var x1 = vs[p].X + (y - vs[p].Y) * (vs[p + 1].X - vs[p].X) / (vs[p + 1].Y - vs[p].Y);
                     var z1 = vs[p].Z + (y - vs[p].Y) * (vs[p + 1].Z - vs[p].Z) / (vs[p + 1].Y - vs[p].Y);
                     var x2 = vs[0].X + (y - vs[0].Y) * (vs[2].X - vs[0].X) / (vs[2].Y - vs[0].Y);
@@ -43,7 +43,6 @@ namespace ZBuffer
                 }
             }
             e.Graphics.DrawImage(bitmap, 0, 0);                                     //画像データを画面に表示する
-
         }
 
         (float X, float Y, float Z)[] TransformVertices((float X, float Y, float Z)[] vertices)

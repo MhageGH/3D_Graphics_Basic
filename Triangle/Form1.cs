@@ -23,7 +23,7 @@ namespace Triangle
                 vs[i] = new(v.X, v.Y, v.Z);
             }
             vs = vs.OrderBy(v => v.Y).ToArray();                                    // Y0≦Y1≦Y2となるように並び替え
-            if (vs[0] == vs[2]) return;                                             // 三角形じゃない
+            if (MathF.Abs(vs[0].Y - vs[2].Y) < 0.1f) return;                        // 三角形じゃない
             (float X, float Y, float Z) a = new(vs[1].X - vs[0].X, vs[1].Y - vs[0].Y, vs[1].Z - vs[0].Z);
             (float X, float Y, float Z) b = new(vs[2].X - vs[0].X, vs[2].Y - vs[0].Y, vs[2].Z - vs[0].Z);
             float n = MathF.Sqrt(MathF.Pow(a.Y * b.Z - a.Z * b.Y, 2) + MathF.Pow(a.Z * b.X - a.X * b.Z, 2) + MathF.Pow(a.X * b.Y - a.Y * b.X, 2));
@@ -32,8 +32,8 @@ namespace Triangle
             var bitmap = new Bitmap(e.ClipRectangle.Width, e.ClipRectangle.Height); // 画面サイズの画像データを作る
             for (var y = (int)vs[0].Y; y < vs[2].Y; y++)                            // 三角形を覆う全ての横線について行う
             {
-                var p = (y >= vs[1].Y && (vs[1] != vs[2])) ? 1 : 0;
-                var x1 = vs[p].X+(y- vs[p].Y) * (vs[p + 1].X - vs[p].X) / (vs[p + 1].Y - vs[p].Y);
+                int p = (MathF.Abs(vs[0].Y - vs[1].Y) < 0.1f || y >= vs[1].Y) ? 1 : 0;
+                var x1 = vs[p].X + (y - vs[p].Y) * (vs[p + 1].X - vs[p].X) / (vs[p + 1].Y - vs[p].Y);
                 var x2 = vs[0].X + (y - vs[0].Y) * (vs[2].X - vs[0].X) / (vs[2].Y - vs[0].Y);
                 var color = Color.SkyBlue;
                 color = Color.FromArgb(255, (int)(color.R * k), (int)(color.G * k), (int)(color.B * k));
