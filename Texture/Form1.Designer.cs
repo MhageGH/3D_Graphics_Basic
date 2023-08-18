@@ -1,4 +1,4 @@
-﻿namespace GouraudShading
+﻿namespace Texture
 {
     partial class Form1
     {
@@ -42,7 +42,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1166, 651);
+            ClientSize = new Size(1120, 558);
             DoubleBuffered = true;
             Name = "Form1";
             Text = "Form1";

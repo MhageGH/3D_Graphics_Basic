@@ -1,18 +1,10 @@
-using System.Diagnostics;
-using System.Drawing;
-using System.Numerics;
-using static System.Windows.Forms.DataFormats;
+ï»¿using System.Numerics;
 
-namespace GouraudShading
+namespace Texture
 {
-    public partial class Form1 : Form
+    internal class Model
     {
-        public Form1()
-        {
-            InitializeComponent();
-        }
-
-        readonly Vector3[] vertices = new Vector3[] {
+        public Vector3[] vertices = new Vector3[] {
             new(-0.2252f,0.6151999f,-0.2252f),
             new(-0.1827f,0.6335999f,-0.2436f),
             new(-0.2007f,0.5907f,-0.2675f),
@@ -416,8 +408,8 @@ namespace GouraudShading
             new(0.0765f,0.08409999f,-0.2295f),
             new(0.1448f,0.1003f,-0.2173f),
             new(0.2007f,0.1225f,-0.2007f)
-        };             // ’¸“_‚ÌÀ•W
-        readonly Vector3[] pseudoNormals = new Vector3[] {
+        };             // é ‚ç‚¹ã®åº§æ¨™
+        public Vector3[] pseudoNormals = new Vector3[] {
             new(-0.5855091f,0.5855097f,-0.560676f),
             new(-0.4590069f,0.6391678f,-0.6170714f),
             new(-0.5079837f,0.5079839f,-0.6956328f),
@@ -821,8 +813,8 @@ namespace GouraudShading
             new(0.1949448f,-0.7919082f,-0.5786864f),
             new(0.3668862f,-0.7507403f,-0.5493482f),
             new(0.5096572f,-0.6931804f,-0.5096572f)
-        };        // ’¸“_‚Ì‹^—–@üƒxƒNƒgƒ‹
-        readonly int[,] faces = new int[,]
+        };        // é ‚ç‚¹ã®ç–‘ä¼¼æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«
+        public int[,] faces = new int[,]
         {
             {0,1,2},
             {0,2,3},
@@ -1592,113 +1584,6 @@ namespace GouraudShading
             {87,402,401},
             {88,89,154},
             {88,154,402},
-        };                      // ’¸“_”Ô†‚Ì‘g‚İ‡‚í‚¹
-        float thetaY = 0;                                           // Y²‰ñ“]Šp“x
-        float thetaZ = 0f;                                          // Z²‰ñ“]Šp“x
-        float scale = 500f;                                         // Šg‘åŒW”
-        Vector3 offset1 = new(300f, 450f, 0);                        // •½sˆÚ“®‚Ì—Ê
-        Vector3 offset2 = new(800f, 450f, 0);                        // •½sˆÚ“®‚Ì—Ê
-        Vector3 light = new(0, 1 / MathF.Sqrt(2), 1 / MathF.Sqrt(2)); // Œõ‚Ì•ûŒüƒxƒNƒgƒ‹
-
-        private void Form1_Paint(object sender, PaintEventArgs e)
-        {
-            var bitmap = new Bitmap(e.ClipRectangle.Width, e.ClipRectangle.Height); // ‰æ–ÊƒTƒCƒY‚Ì‰æ‘œƒf[ƒ^‚ğì‚é
-            var zBuffers = new float[e.ClipRectangle.Width, e.ClipRectangle.Height];      // ƒsƒNƒZƒ‹‚Ì‰œs‚«‚Ì’l
-            for (int i = 0; i < zBuffers.GetLength(0); i++) for (int j = 0; j < zBuffers.GetLength(1); j++) zBuffers[i, j] = float.MaxValue; // ‰Šú’l
-            var transformedVertices = TransformVertices(vertices, offset1);                  // ’¸“_‚Ì•½sˆÚ“®‚Æ‰ñ“]
-            DrawPolygons(transformedVertices, bitmap, zBuffers);
-            transformedVertices = TransformVertices(vertices, offset2);
-            var transformedPseudoNormals = TransformPsudoNormals(pseudoNormals);
-            DrawPolygons(transformedVertices, bitmap, zBuffers, transformedPseudoNormals);
-            e.Graphics.DrawImage(bitmap, 0, 0);                                     //‰æ‘œƒf[ƒ^‚ğ‰æ–Ê‚É•\¦‚·‚é
-        }
-
-        private void DrawPolygons(Vector3[] vertices, Bitmap bitmap, float[,] zBuffer, Vector3[]? pseudoNormals = null)
-        {
-            for (int m = 0; m < faces.GetLength(0); ++m)
-            {
-                var vs_pns = new (Vector3, Vector3)[faces.GetLength(1)];              // ‹^—–@üƒxƒNƒgƒ‹‚ğˆê‚É•À‚Ñ‘Ö‚¦‚é
-                for (int i = 0; i < vs_pns.Length; ++i) vs_pns[i] = (vertices[faces[m, i]], pseudoNormals == null ? new Vector3() : pseudoNormals[faces[m, i]]);
-                vs_pns = vs_pns.OrderBy(v => v.Item1.Y).ToArray();
-                Vector3[] vs = new Vector3[faces.GetLength(1)], pns = new Vector3[faces.GetLength(1)];
-                for (int i = 0; i < vs_pns.Length; ++i) (vs[i], pns[i]) = vs_pns[i];
-                if (MathF.Abs(vs[0].Y - vs[2].Y) < 0.1f) continue;                      // OŠpŒ`‚¶‚á‚È‚¢
-                var normal = GetNormalOfTrigngle(vs);
-                float brightness = MathF.Abs(light.X * normal.X + light.Y * normal.Y + light.Z * normal.Z);
-                for (int y = (int)vs[0].Y; y < vs[2].Y; ++y)                            // OŠpŒ`‚ğ•¢‚¤‘S‚Ä‚Ì‰¡ü‚É‚Â‚¢‚Äs‚¤
-                {
-                    int p = (MathF.Abs(vs[0].Y - vs[1].Y) < 0.1f || y >= vs[1].Y) ? 1 : 0;
-                    var x1 = vs[p].X + (y - vs[p].Y) * (vs[p + 1].X - vs[p].X) / (vs[p + 1].Y - vs[p].Y);
-                    var z1 = vs[p].Z + (y - vs[p].Y) * (vs[p + 1].Z - vs[p].Z) / (vs[p + 1].Y - vs[p].Y);
-                    var x2 = vs[0].X + (y - vs[0].Y) * (vs[2].X - vs[0].X) / (vs[2].Y - vs[0].Y);
-                    var z2 = vs[0].Z + (y - vs[0].Y) * (vs[2].Z - vs[0].Z) / (vs[2].Y - vs[0].Y);
-                    x1 = MathF.Min(MathF.Max(vs[p].X, vs[p + 1].X), MathF.Max(MathF.Min(vs[p].X, vs[p + 1].X), x1)); // ŒvZŒë·‘Îô
-                    x2 = MathF.Min(MathF.Max(vs[0].X, vs[2].X), MathF.Max(MathF.Min(vs[0].X, vs[2].X), x2));
-                    Vector3 n1 = new(), n2 = new();
-                    if (pseudoNormals != null)
-                    {
-                        n1 = pns[p] + (y - vs[p].Y) * (pns[p + 1] - pns[p]) / (vs[p + 1].Y - vs[p].Y);
-                        n2 = pns[0] + (y - vs[0].Y) * (pns[2] - pns[0]) / (vs[2].Y - vs[0].Y);
-                    }
-                    var base_color = Color.SkyBlue;
-                    var color = Color.FromArgb(255, (int)(base_color.R * brightness), (int)(base_color.G * brightness), (int)(base_color.B * brightness));
-                    for (int x = (int)Math.Min(x1, x2); x <= (int)Math.Max(x1, x2); ++x)
-                    {
-                        var z = x2 == x1 ? z1 : z1 + (x - x1) * (z2 - z1) / (x2 - x1);       // ZÀ•W‚ğŒvZ
-                        if (z > zBuffer[x, y]) continue;                                     // ¡‰ñ‚Ì‚à‚Ì‚ª‰œ‚É‚ ‚ê‚Î‰½‚à‚µ‚È‚¢
-                        zBuffer[x, y] = z;                                                   // è‘O‚É‚ ‚ê‚Î‰œs‚Ì’l‚ğXV‚µ‚ÄƒsƒNƒZƒ‹‚ğ“h‚é
-                        if (pseudoNormals != null)
-                        {
-                            var n = x2 == x1 ? n1 : n1 + (x - x1) * (n2 - n1) / (x2 - x1);
-                            brightness = MathF.Min(1, MathF.Abs(light.X * n.X + light.Y * n.Y + light.Z * n.Z));
-                            color = Color.FromArgb(255, (int)(base_color.R * brightness), (int)(base_color.G * brightness), (int)(base_color.B * brightness));
-                        }
-                        bitmap.SetPixel(x, y, color);
-                    }
-                }
-            }
-        }
-
-        Vector3[] TransformVertices(Vector3[] vertices, Vector3 offset)
-        {
-            var vs = new Vector3[vertices.Length];  // ˆÚ“®Œã‚Ì’¸“_
-            for (int i = 0; i < vs.Length; ++i)
-            {
-                Vector3 v = new(vertices[i].X, -vertices[i].Y, vertices[i].Z);   // MMDƒ‚ƒfƒ‹‚ÍY²‚ª”½“]‚µ‚Ä‚¢‚é
-                v = new(v.Z * MathF.Sin(thetaY) + v.X * MathF.Cos(thetaY), v.Y, v.Z * MathF.Cos(thetaY) - v.X * MathF.Sin(thetaY));// Y²‰ñ“]
-                v = new(v.X * MathF.Cos(thetaZ) - v.Y * MathF.Sin(thetaZ), v.X * MathF.Sin(thetaZ) + v.Y * MathF.Cos(thetaZ), v.Z);// Z²‰ñ“]
-                v = new(scale * v.X, scale * v.Y, scale * v.Z);                    // Šg‘å
-                v = new(v.X + offset.X, v.Y + offset.Y, v.Z + offset.Z);           // •½sˆÚ“®
-                vs[i] = new(v.X, v.Y, v.Z);
-            }
-            return vs;
-        }
-
-        Vector3[] TransformPsudoNormals(Vector3[] normals)
-        {
-            var ns = new Vector3[normals.Length];  // ˆÚ“®Œã‚Ì–@üƒxƒNƒgƒ‹
-            for (int i = 0; i < ns.Length; ++i)
-            {
-                Vector3 n = new(normals[i].X, -normals[i].Y, normals[i].Z);     // MMDƒ‚ƒfƒ‹‚ÍY²‚ª”½“]‚µ‚Ä‚¢‚é
-                n = new(n.Z * MathF.Sin(thetaY) + n.X * MathF.Cos(thetaY), n.Y, n.Z * MathF.Cos(thetaY) - n.X * MathF.Sin(thetaY));// Y²‰ñ“]
-                n = new(n.X * MathF.Cos(thetaZ) - n.Y * MathF.Sin(thetaZ), n.X * MathF.Sin(thetaZ) + n.Y * MathF.Cos(thetaZ), n.Z);// Z²‰ñ“]
-                ns[i] = new(n.X, n.Y, n.Z);
-            }
-            return ns;
-        }
-
-        Vector3 GetNormalOfTrigngle(Vector3[] vertices)
-        {
-            Vector3 a = new(vertices[1].X - vertices[0].X, vertices[1].Y - vertices[0].Y, vertices[1].Z - vertices[0].Z);
-            Vector3 b = new(vertices[2].X - vertices[0].X, vertices[2].Y - vertices[0].Y, vertices[2].Z - vertices[0].Z);
-            float n = MathF.Sqrt(MathF.Pow(a.Y * b.Z - a.Z * b.Y, 2) + MathF.Pow(a.Z * b.X - a.X * b.Z, 2) + MathF.Pow(a.X * b.Y - a.Y * b.X, 2));
-            return new((a.Y * b.Z - a.Z * b.Y) / n, (a.Z * b.X - a.X * b.Z) / n, (a.X * b.Y - a.Y * b.X) / n); // –@üƒxƒNƒgƒ‹
-        }
-
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            thetaY += 0.05f; // ˆê’èŠÔ‚²‚Æ‚ÉY²‰ñ“]Šp“x‚ğ‘‚â‚·
-            Invalidate();
-        }
+        };                      // é ‚ç‚¹ç•ªå·ã®çµ„ã¿åˆã‚ã›
     }
 }
