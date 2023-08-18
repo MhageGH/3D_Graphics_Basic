@@ -7,10 +7,9 @@ namespace Texture
         float thetaY = 0f;                                          // Y軸回転角度
         float thetaZ = 0f;                                          // Z軸回転角度
         float scale = 500f;                                         // 拡大係数
-        Vector3 offset1 = new(300f, 450f, 0);                        // 平行移動の量
-        Vector3 offset2 = new(800f, 450f, 0);                        // 平行移動の量
+        Vector3 offset = new(300f, 450f, 0);                        // 平行移動の量
         Vector3 light = new(0, 1 / MathF.Sqrt(2), 1 / MathF.Sqrt(2)); // 光の方向ベクトル
-        Model model = new();
+        Model model = new("../../../1.csv");
 
         public Form1()
         {
@@ -22,9 +21,7 @@ namespace Texture
             var bitmap = new Bitmap(e.ClipRectangle.Width, e.ClipRectangle.Height); // 画面サイズの画像データを作る
             var zBuffers = new float[e.ClipRectangle.Width, e.ClipRectangle.Height];      // ピクセルの奥行きの値
             for (int i = 0; i < zBuffers.GetLength(0); i++) for (int j = 0; j < zBuffers.GetLength(1); j++) zBuffers[i, j] = float.MaxValue; // 初期値
-            var transformedVertices = TransformVertices(model.vertices, offset1);                  // 頂点の平行移動と回転
-            DrawPolygons(transformedVertices, bitmap, zBuffers);
-            transformedVertices = TransformVertices(model.vertices, offset2);
+            var transformedVertices = TransformVertices(model.vertices, offset);                  // 頂点の平行移動と回転
             var transformedPseudoNormals = TransformPsudoNormals(model.pseudoNormals);
             DrawPolygons(transformedVertices, bitmap, zBuffers, transformedPseudoNormals);
             e.Graphics.DrawImage(bitmap, 0, 0);                                     //画像データを画面に表示する
