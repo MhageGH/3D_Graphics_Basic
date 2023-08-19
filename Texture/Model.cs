@@ -1,8 +1,10 @@
 ﻿using System.Numerics;
-using System.Security;
 
 namespace Texture
 {
+    /// <summary>
+    /// 各種情報を含む頂点
+    /// </summary>
     internal class Vertex
     {
         public Vector3 pos;             // 位置
@@ -17,10 +19,23 @@ namespace Texture
         }
     }
 
+    /// <summary>
+    /// 面。頂点番号の組み合わせ。MMDではFaceと呼ぶ。
+    /// </summary>
+    internal class Face
+    {
+        public int[] vertexNumbers;
+
+        public Face(int[] vertexNumbers)
+        {
+            this.vertexNumbers = vertexNumbers;
+        }
+    }
+
     internal class Model
     {
         public Vertex[] vertices;
-        public int[,] faces;                    // 頂点番号の組み合わせ。MMDではfaceと呼ぶ。
+        public Face[] faces;
 
         /// <param name="filename">MMDモデル用のPMXファイルをPMXエディターで開いてCSV出力したファイルの名前</param>
         public Model(String filename)
@@ -31,7 +46,7 @@ namespace Texture
             var posList = new List<Vector3>();
             var pseudoNormalList = new List<Vector3>();
             var uvList = new List<Vector2>();
-            var faceList = new List<int[]>();
+            var vertexNumbersList = new List<int[]>();
             for (int i = 0; i < lines.Length; i++)
             {
                 if (data[i][0] == "Vertex")
@@ -42,16 +57,13 @@ namespace Texture
                 }
                 if (data[i][0] == "Face")
                 {
-                    faceList.Add(new[] { Convert.ToInt32(data[i][3]), Convert.ToInt32(data[i][4]), Convert.ToInt32(data[i][5]) });
+                    vertexNumbersList.Add(new[] { Convert.ToInt32(data[i][3]), Convert.ToInt32(data[i][4]), Convert.ToInt32(data[i][5]) });
                 }
             }
-            var pos_s = posList.ToArray();
-            var pseudoNormals = pseudoNormalList.ToArray();
-            var uvs = uvList.ToArray();
-            vertices = new Vertex[pos_s.Length];
-            for (int i = 0; i < vertices.Length; ++i) vertices[i] = new Vertex(pos_s[i], pseudoNormals[i], uvs[i]);
-            faces = new int[faceList.Count, 3];
-            for (int i = 0; i < faceList.Count; ++i) for (int j = 0; j < 3; ++j) faces[i, j] = faceList[i][j];
+            vertices = new Vertex[posList.Count];
+            for (int i = 0; i < vertices.Length; ++i) vertices[i] = new Vertex(posList[i], pseudoNormalList[i], uvList[i]);
+            faces = new Face[vertexNumbersList.Count];
+            for (int i = 0; i < vertexNumbersList.Count; ++i) faces[i] = new Face(vertexNumbersList[i]);
         }
     }
 }

@@ -29,13 +29,13 @@ namespace Texture
 
         private void DrawPolygons(Vertex[] vertices, Bitmap screen, float[,] zBuffer, bool gourauShading)
         {
-            for (int m = 0; m < model.faces.GetLength(0); ++m)
+            for (int m = 0; m < model.faces.Length; ++m)
             {
-                var length = model.faces.GetLength(1);                                      // ポリゴン一つごとの頂点の数。MMDの場合は常に3。
+                var length = model.faces[m].vertexNumbers.Length;                          // ポリゴン一つごとの頂点の数。MMDの場合は常に3。
                 var vs = new Vertex[length];
                 for (int i = 0; i < length; ++i)
                 {
-                    var v = vertices[model.faces[m, i]];
+                    var v = vertices[model.faces[m].vertexNumbers[i]];
                     vs[i] = new Vertex(v.pos, v.pseudoNormal, v.uv);
                 }
                 vs = vs.OrderBy(v => v.pos.Y).ToArray();
