@@ -61,9 +61,9 @@ namespace Texture
                 }
             }
             vertices = new Vertex[posList.Count];
-            for (int i = 0; i < vertices.Length; ++i) vertices[i] = new Vertex(posList[i], pseudoNormalList[i], uvList[i]);
+            for (int i = 0; i < vertices.Length; ++i) vertices[i] = new(posList[i], pseudoNormalList[i], uvList[i]);
             faces = new Face[vertexNumbersList.Count];
-            for (int i = 0; i < vertexNumbersList.Count; ++i) faces[i] = new Face(vertexNumbersList[i]);
+            for (int i = 0; i < vertexNumbersList.Count; ++i) faces[i] = new(vertexNumbersList[i]);
         }
     }
 }
