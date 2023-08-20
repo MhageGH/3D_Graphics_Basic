@@ -75,10 +75,9 @@ namespace Texture
                             brightness = Clip(0, 1, light.X * n.X + light.Y * n.Y + light.Z * n.Z);
                             brightenedColor = Color.FromArgb(color.A, (int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
                         }
-                        // TODO テクスチャONのとき、透明部の判定がNG
-                        //if (brightenedColor.A == 0) return;                                 // 透明な色は塗らず、Zバッファを更新しない
+                        if (brightenedColor.A == 0) continue;                                 // 透明な色は塗らず、Zバッファを更新しない
                         screen.SetPixel(x, y, brightenedColor);
-                        zBuffer[x, y] = z;                                                  // 奥行の値を更新
+                        zBuffer[x, y] = z;                                                    // 奥行の値を更新
                     }
                 }
             }
