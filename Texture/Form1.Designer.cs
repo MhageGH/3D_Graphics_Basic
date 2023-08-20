@@ -42,6 +42,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = SystemColors.ControlDarkDark;
             ClientSize = new Size(668, 534);
             DoubleBuffered = true;
             Name = "Form1";

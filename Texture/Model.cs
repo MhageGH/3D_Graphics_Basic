@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Text;
 
 namespace Texture
 {
@@ -41,9 +42,9 @@ namespace Texture
     {
         public String name;
         public Color color;
-        public Bitmap texture;
+        public Bitmap? texture;
 
-        public Material(String name, Color color, Bitmap texture)
+        public Material(String name, Color color, Bitmap? texture)
         {
             this.name = name;
             this.color = color;
@@ -60,7 +61,11 @@ namespace Texture
         /// <param name="filename">MMDモデル用のPMXファイルをPMXエディターで開いてCSV出力したファイルの名前</param>
         public Model(String filename)
         {
-            var lines = File.ReadAllLines(filename);
+            // C#はデフォルトでShift_JISに非対応。NuGetパッケージでSystem.Text.Encoding.CodePagesをインストールし、以下のメソッド実行でShift_JISを使用可能にする。
+            // 日本のWindows環境のCSVはShift_JISがデフォルト。PMX EditorのCSV出力もShift_JISが使用されている。
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            var lines = File.ReadAllLines(filename, System.Text.Encoding.GetEncoding("Shift_JIS"));
             var data = new String[lines.Length][];
             for (int i = 0; i < lines.Length; i++) data[i] = lines[i].Split(',');
             var vertexList = new List<Vertex>();
@@ -80,11 +85,11 @@ namespace Texture
                 }
                 if (data[i][0] == "Material")
                 {
-                    var rgb = new int[3];
-                    for (int j = 0; j < rgb.Length; ++j) rgb[j] = (int)(255 * Convert.ToSingle(data[i][3 + j]));
-                    var textureFilename = data[i][26];
-                    var texture = new Bitmap(Path.GetDirectoryName(filename) + "/" + textureFilename);  // テクスチャファイルはbmp,  png, jpg とし、モデルのファイルと同じフォルダにあるとする
-                    materialList.Add(new(data[i][1], Color.FromArgb(rgb[0], rgb[1], rgb[2]), texture));
+                    var rgba = new int[4];
+                    for (int j = 0; j < rgba.Length; ++j) rgba[j] = (int)(255 * Convert.ToSingle(data[i][3 + j]));
+                    var textureFilename = data[i][26].Trim('\"');   // PMX EditorのCSV出力は文字列がダブルクォーテーションで囲われている。Excelなどで編集して保存するとダブルクォーテーションがなくなる。
+                    var texture = textureFilename == "" ? null : new Bitmap(Path.GetDirectoryName(filename) + "/" + textureFilename);  // テクスチャファイルはbmp, png, jpgに対応。tgaは非対応。モデルのファイルと同じフォルダにあるとする
+                    materialList.Add(new(data[i][1], Color.FromArgb(rgba[3], rgba[0], rgba[1], rgba[2]), texture));
                 }
             }
             vertices = vertexList.ToArray();

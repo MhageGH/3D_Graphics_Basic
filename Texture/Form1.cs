@@ -4,13 +4,14 @@ namespace Texture
 {
     public partial class Form1 : Form
     {
-        float thetaY = 0f;                                                          // Y軸回転角度
-        float thetaZ = 0f;                                                          // Z軸回転角度
-        float scale = 500f;                                                         // 拡大係数
-        const float light_thetaX = MathF.PI / 4;
+        float thetaY = MathF.PI / 10;                                                // Y軸回転角度
+        float thetaZ = 0;                                                          // Z軸回転角度
+        float scale = 50f;                                                          // 拡大係数
+        const float light_thetaX = 1 * MathF.PI / 3;
         Vector3 light = new(0, MathF.Cos(light_thetaX), MathF.Sin(light_thetaX));   // 光の方向ベクトル
         Vector3 offset = new(300f, 450f, 0);                                        // 平行移動の量
-        Model model = new("../../../1.csv");    // 1.csvは球形だが同じ位置で法線ベクトルが異なる別の頂点が存在し、法線が不連続に切り替わる(例:頂点1と頂点396)
+        //Model model = new("../../../Model/1.csv");                                  // 1.csvは球形だが同じ位置で法線ベクトルが異なる別の頂点が存在し、法線が不連続に切り替わる(例:頂点1と頂点396)
+        Model model = new("../../../Model/Shanghai.csv");
 
         public Form1()
         {
@@ -54,28 +55,30 @@ namespace Texture
                     var pn1 = vs[j].pseudoNormal + (y - vs[j].pos.Y) * (vs[j + 1].pseudoNormal - vs[j].pseudoNormal) / (vs[j + 1].pos.Y - vs[j].pos.Y);
                     var pn2 = vs[0].pseudoNormal + (y - vs[0].pos.Y) * (vs[2].pseudoNormal - vs[0].pseudoNormal) / (vs[2].pos.Y - vs[0].pos.Y);
                     var uv1 = vs[j].uv + (y - vs[j].pos.Y) * (vs[j + 1].uv - vs[j].uv) / (vs[j + 1].pos.Y - vs[j].pos.Y);
-                    var uv2 = vs[0].uv+ (y - vs[0].pos.Y) * (vs[2].uv - vs[0].uv) / (vs[2].pos.Y - vs[0].pos.Y);
+                    var uv2 = vs[0].uv + (y - vs[0].pos.Y) * (vs[2].uv - vs[0].uv) / (vs[2].pos.Y - vs[0].pos.Y);
                     for (int x = (int)Math.Min(x1, x2); x <= (int)Math.Max(x1, x2); ++x)
                     {
                         var z = x2 == x1 ? z1 : z1 + (x - x1) * (z2 - z1) / (x2 - x1);      // Z座標を計算
                         if (z > zBuffer[x, y]) continue;                                    // 今回のものが奥にあれば何もしない
-                        zBuffer[x, y] = z;                                                  // 手前にあれば奥行の値を更新してピクセルを塗る
                         if (textureMapping)
                         {
                             var uv = x2 == x1 ? uv1 : uv1 + (x - x1) * (uv2 - uv1) / (x2 - x1);
                             uv.X = Clip(0, 1, uv.X);                                        // クリッピングは計算誤差対策
                             uv.Y = Clip(0, 1, uv.Y);
-                            color = texture.GetPixel((int)((texture.Width - 1) * uv.X), (int)((texture.Height - 1) * uv.Y));
+                            if (texture != null) color = texture.GetPixel((int)((texture.Width - 1) * uv.X), (int)((texture.Height - 1) * uv.Y));
                         }
-                        var brightenedColor = Color.FromArgb(255, (int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
+                        var brightenedColor = Color.FromArgb(color.A, (int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
                         if (gourauShading)
                         {
                             var n = x2 == x1 ? pn1 : pn1 + (x - x1) * (pn2 - pn1) / (x2 - x1);
                             n = MakePositiveNormal(n);
                             brightness = Clip(0, 1, light.X * n.X + light.Y * n.Y + light.Z * n.Z);
-                            brightenedColor = Color.FromArgb(255, (int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
+                            brightenedColor = Color.FromArgb(color.A, (int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
                         }
+                        // TODO テクスチャONのとき、透明部の判定がNG
+                        //if (brightenedColor.A == 0) return;                                 // 透明な色は塗らず、Zバッファを更新しない
                         screen.SetPixel(x, y, brightenedColor);
+                        zBuffer[x, y] = z;                                                  // 奥行の値を更新
                     }
                 }
             }
@@ -122,7 +125,7 @@ namespace Texture
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            thetaY += 0.05f; // 一定時間ごとにY軸回転角度を増やす
+            //thetaY += 0.05f; // 一定時間ごとにY軸回転角度を増やす
             Invalidate();
         }
     }
