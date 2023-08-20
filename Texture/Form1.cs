@@ -4,8 +4,9 @@ namespace Texture
 {
     public partial class Form1 : Form
     {
-        float thetaY = MathF.PI / 10;                                                // Y軸回転角度
-        float thetaZ = 0;                                                          // Z軸回転角度
+        float thetaX = 0.3f;                                               // X軸回転角度
+        float thetaY = 0.5f;                                               // Y軸回転角度
+        float thetaZ = 0;                                                           // Z軸回転角度
         float scale = 50f;                                                          // 拡大係数
         const float light_thetaX = 1 * MathF.PI / 3;
         Vector3 light = new(0, MathF.Cos(light_thetaX), MathF.Sin(light_thetaX));   // 光の方向ベクトル
@@ -47,8 +48,9 @@ namespace Texture
                 float brightness = Clip(0, 1, light.X * normal.X + light.Y * normal.Y + light.Z * normal.Z);
                 for (int y = (int)vs[0].pos.Y; y < vs[2].pos.Y; ++y)                        // 三角形を覆う全ての横線について行う
                 {
+                    if (y < 0 || y >= screen.Height) continue;                              // 画面サイズでクリッピング
                     int j = (MathF.Abs(vs[0].pos.Y - vs[1].pos.Y) < 0.1f || y >= vs[1].pos.Y) ? 1 : 0;
-                    var x1 = Clip(vs[j].pos.X, vs[j + 1].pos.X, vs[j].pos.X + (y - vs[j].pos.Y) * (vs[j + 1].pos.X - vs[j].pos.X) / (vs[j + 1].pos.Y - vs[j].pos.Y));  // クリッピングは計算誤差対策
+                    var x1 = Clip(vs[j].pos.X, vs[j + 1].pos.X, vs[j].pos.X + (y - vs[j].pos.Y) * (vs[j + 1].pos.X - vs[j].pos.X) / (vs[j + 1].pos.Y - vs[j].pos.Y));  // 計算誤差対策
                     var x2 = Clip(vs[0].pos.X, vs[2].pos.X, vs[0].pos.X + (y - vs[0].pos.Y) * (vs[2].pos.X - vs[0].pos.X) / (vs[2].pos.Y - vs[0].pos.Y));
                     var z1 = vs[j].pos.Z + (y - vs[j].pos.Y) * (vs[j + 1].pos.Z - vs[j].pos.Z) / (vs[j + 1].pos.Y - vs[j].pos.Y);
                     var z2 = vs[0].pos.Z + (y - vs[0].pos.Y) * (vs[2].pos.Z - vs[0].pos.Z) / (vs[2].pos.Y - vs[0].pos.Y);
@@ -58,12 +60,13 @@ namespace Texture
                     var uv2 = vs[0].uv + (y - vs[0].pos.Y) * (vs[2].uv - vs[0].uv) / (vs[2].pos.Y - vs[0].pos.Y);
                     for (int x = (int)Math.Min(x1, x2); x <= (int)Math.Max(x1, x2); ++x)
                     {
+                        if (x < 0 || x >= screen.Width) continue;                           // 画面サイズでクリッピング
                         var z = x2 == x1 ? z1 : z1 + (x - x1) * (z2 - z1) / (x2 - x1);      // Z座標を計算
                         if (z > zBuffer[x, y]) continue;                                    // 今回のものが奥にあれば何もしない
                         if (textureMapping)
                         {
                             var uv = x2 == x1 ? uv1 : uv1 + (x - x1) * (uv2 - uv1) / (x2 - x1);
-                            uv.X = Clip(0, 1, uv.X);                                        // クリッピングは計算誤差対策
+                            uv.X = Clip(0, 1, uv.X);                                        // 計算誤差対策
                             uv.Y = Clip(0, 1, uv.Y);
                             if (texture != null) color = texture.GetPixel((int)((texture.Width - 1) * uv.X), (int)((texture.Height - 1) * uv.Y));
                         }
@@ -104,11 +107,13 @@ namespace Texture
                 Vector3 pos = new(vertices[i].pos.X, -vertices[i].pos.Y, vertices[i].pos.Z);   // MMDモデルはY軸が反転している
                 pos = new(pos.Z * MathF.Sin(thetaY) + pos.X * MathF.Cos(thetaY), pos.Y, pos.Z * MathF.Cos(thetaY) - pos.X * MathF.Sin(thetaY));// Y軸回転
                 pos = new(pos.X * MathF.Cos(thetaZ) - pos.Y * MathF.Sin(thetaZ), pos.X * MathF.Sin(thetaZ) + pos.Y * MathF.Cos(thetaZ), pos.Z);// Z軸回転
+                pos = new(pos.X, pos.Y * MathF.Cos(thetaX) - pos.Z * MathF.Sin(thetaX), pos.Y * MathF.Sin(thetaX) + pos.Z * MathF.Cos(thetaX));// X軸回転
                 pos = new(scale * pos.X, scale * pos.Y, scale * pos.Z);                    // 拡大
                 pos = new(pos.X + offset.X, pos.Y + offset.Y, pos.Z + offset.Z);           // 平行移動
                 Vector3 pn = new(vertices[i].pseudoNormal.X, -vertices[i].pseudoNormal.Y, vertices[i].pseudoNormal.Z);     // MMDモデルはY軸が反転している
                 pn = new(pn.Z * MathF.Sin(thetaY) + pn.X * MathF.Cos(thetaY), pn.Y, pn.Z * MathF.Cos(thetaY) - pn.X * MathF.Sin(thetaY));// Y軸回転
                 pn = new(pn.X * MathF.Cos(thetaZ) - pn.Y * MathF.Sin(thetaZ), pn.X * MathF.Sin(thetaZ) + pn.Y * MathF.Cos(thetaZ), pn.Z);// Z軸回転
+                pn = new(pn.X, pn.Y * MathF.Cos(thetaX) - pn.Z * MathF.Sin(thetaX), pn.Y * MathF.Sin(thetaX) + pn.Z * MathF.Cos(thetaX));// X軸回転
                 vs[i] = new Vertex(pos, pn, vertices[i].uv);
             }
             return vs;
