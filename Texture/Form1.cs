@@ -11,7 +11,6 @@ namespace Texture
         Vector3 light = new(0, MathF.Cos(light_thetaX), MathF.Sin(light_thetaX));   // 光の方向ベクトル
         Vector3 offset = new(300f, 450f, 0);                                        // 平行移動の量
         Model model = new("../../../1.csv");    // 1.csvは球形だが同じ位置で法線ベクトルが異なる別の頂点が存在し、法線が不連続に切り替わる(例:頂点1と頂点396)
-        Bitmap texture = new Bitmap("../../../1.bmp");
 
         public Form1()
         {
@@ -32,6 +31,8 @@ namespace Texture
         {
             for (int m = 0; m < model.faces.Length; ++m)
             {
+                var color = model.faces[m].material.color;
+                var texture = model.faces[m].material.texture;
                 var length = model.faces[m].vertexNumbers.Length;                          // ポリゴン一つごとの頂点の数。MMDの場合は常に3。
                 var vs = new Vertex[length];
                 for (int i = 0; i < length; ++i)
@@ -59,7 +60,6 @@ namespace Texture
                         var z = x2 == x1 ? z1 : z1 + (x - x1) * (z2 - z1) / (x2 - x1);      // Z座標を計算
                         if (z > zBuffer[x, y]) continue;                                    // 今回のものが奥にあれば何もしない
                         zBuffer[x, y] = z;                                                  // 手前にあれば奥行の値を更新してピクセルを塗る
-                        var color = Color.SkyBlue;
                         if (textureMapping)
                         {
                             var uv = x2 == x1 ? uv1 : uv1 + (x - x1) * (uv2 - uv1) / (x2 - x1);
