@@ -4,12 +4,13 @@ namespace Texture
 {
     public partial class Form1 : Form
     {
-        float thetaY = 0f;                                          // Y軸回転角度
-        float thetaZ = 0f;                                          // Z軸回転角度
-        float scale = 500f;                                         // 拡大係数
-        Vector3 offset = new(300f, 450f, 0);                        // 平行移動の量
-        Vector3 light = new(0, 1 / MathF.Sqrt(2), 1 / MathF.Sqrt(2)); // 光の方向ベクトル
-        Model model = new("../../../1.csv");
+        float thetaY = 0f;                                                          // Y軸回転角度
+        float thetaZ = 0f;                                                          // Z軸回転角度
+        float scale = 500f;                                                         // 拡大係数
+        const float light_thetaX = MathF.PI / 4;
+        Vector3 light = new(0, MathF.Cos(light_thetaX), MathF.Sin(light_thetaX));   // 光の方向ベクトル
+        Vector3 offset = new(300f, 450f, 0);                                        // 平行移動の量
+        Model model = new("../../../1.csv");    // 1.csvは球形だが同じ位置で法線ベクトルが異なる別の頂点が存在し、法線が不連続に切り替わる(例:頂点1と頂点396)
         Bitmap texture = new Bitmap("../../../1.bmp");
 
         public Form1()
@@ -23,8 +24,8 @@ namespace Texture
             var zBuffers = new float[e.ClipRectangle.Width, e.ClipRectangle.Height];    // ピクセルの奥行きの値
             for (int i = 0; i < zBuffers.GetLength(0); i++) for (int j = 0; j < zBuffers.GetLength(1); j++) zBuffers[i, j] = float.MaxValue; // 初期値
             var transformedVertices = TransformVertices(model.vertices, offset);        // 頂点の平行移動と回転
-            DrawPolygons(transformedVertices, screen, zBuffers, true, true);
-            e.Graphics.DrawImage(screen, 0, 0);                                         //画像データを画面に表示する
+            DrawPolygons(transformedVertices, screen, zBuffers, true, true);            // テクスチャマッピングと、グーローシェーディングは引数でON/OFF切り替え可能
+            e.Graphics.DrawImage(screen, 0, 0);                                         // 画像データを画面に表示する
         }
 
         private void DrawPolygons(Vertex[] vertices, Bitmap screen, float[,] zBuffer, bool textureMapping, bool gourauShading)
@@ -40,8 +41,8 @@ namespace Texture
                 }
                 vs = vs.OrderBy(v => v.pos.Y).ToArray();
                 if (MathF.Abs(vs[0].pos.Y - vs[2].pos.Y) < 0.1f) continue;                  // 三角形じゃない
-                var normal = GetNormalOfTrigngle(vs.Select(v => v.pos).ToArray());
-                float brightness = MathF.Abs(light.X * normal.X + light.Y * normal.Y + light.Z * normal.Z);
+                var normal = MakePositiveNormal(GetNormalOfTrigngle(vs.Select(v => v.pos).ToArray()));
+                float brightness = Clip(0, 1, light.X * normal.X + light.Y * normal.Y + light.Z * normal.Z);
                 for (int y = (int)vs[0].pos.Y; y < vs[2].pos.Y; ++y)                        // 三角形を覆う全ての横線について行う
                 {
                     int j = (MathF.Abs(vs[0].pos.Y - vs[1].pos.Y) < 0.1f || y >= vs[1].pos.Y) ? 1 : 0;
@@ -70,7 +71,8 @@ namespace Texture
                         if (gourauShading)
                         {
                             var n = x2 == x1 ? pn1 : pn1 + (x - x1) * (pn2 - pn1) / (x2 - x1);
-                            brightness = MathF.Min(1, MathF.Abs(light.X * n.X + light.Y * n.Y + light.Z * n.Z));
+                            n = MakePositiveNormal(n);
+                            brightness = Clip(0, 1, light.X * n.X + light.Y * n.Y + light.Z * n.Z);
                             brightenedColor = Color.FromArgb(255, (int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
                         }
                         screen.SetPixel(x, y, brightenedColor);
@@ -79,12 +81,17 @@ namespace Texture
             }
         }
 
-        /// <summary>
-        /// 最大最小に収めるクリッピング
-        /// </summary>
         float Clip(float min, float max, float value)
         {
             return MathF.Min(MathF.Max(min, max), MathF.Max(MathF.Min(min, max), value));
+        }
+
+        /// <summary>
+        /// 法線を視点(Z方向)から見て正の方向になるようにする
+        /// </summary>
+        Vector3 MakePositiveNormal(Vector3 normal)
+        {
+            return normal.Z > 0 ? normal : -normal;
         }
 
         Vertex[] TransformVertices(Vertex[] vertices, Vector3 offset)

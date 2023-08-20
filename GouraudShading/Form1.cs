@@ -1623,17 +1623,17 @@ namespace GouraudShading
                 Vector3[] vs = new Vector3[faces.GetLength(1)], pns = new Vector3[faces.GetLength(1)];
                 for (int i = 0; i < vs_pns.Length; ++i) (vs[i], pns[i]) = vs_pns[i];
                 if (MathF.Abs(vs[0].Y - vs[2].Y) < 0.1f) continue;                      // 三角形じゃない
-                var normal = GetNormalOfTrigngle(vs);
-                float brightness = MathF.Abs(light.X * normal.X + light.Y * normal.Y + light.Z * normal.Z);
+                var normal = MakePositiveNormal(GetNormalOfTrigngle(vs));
+                float brightness = Clip(0, 1, light.X * normal.X + light.Y * normal.Y + light.Z * normal.Z);
                 for (int y = (int)vs[0].Y; y < vs[2].Y; ++y)                            // 三角形を覆う全ての横線について行う
                 {
                     int p = (MathF.Abs(vs[0].Y - vs[1].Y) < 0.1f || y >= vs[1].Y) ? 1 : 0;
                     var x1 = vs[p].X + (y - vs[p].Y) * (vs[p + 1].X - vs[p].X) / (vs[p + 1].Y - vs[p].Y);
-                    var z1 = vs[p].Z + (y - vs[p].Y) * (vs[p + 1].Z - vs[p].Z) / (vs[p + 1].Y - vs[p].Y);
                     var x2 = vs[0].X + (y - vs[0].Y) * (vs[2].X - vs[0].X) / (vs[2].Y - vs[0].Y);
-                    var z2 = vs[0].Z + (y - vs[0].Y) * (vs[2].Z - vs[0].Z) / (vs[2].Y - vs[0].Y);
                     x1 = MathF.Min(MathF.Max(vs[p].X, vs[p + 1].X), MathF.Max(MathF.Min(vs[p].X, vs[p + 1].X), x1)); // 計算誤差対策
                     x2 = MathF.Min(MathF.Max(vs[0].X, vs[2].X), MathF.Max(MathF.Min(vs[0].X, vs[2].X), x2));
+                    var z1 = vs[p].Z + (y - vs[p].Y) * (vs[p + 1].Z - vs[p].Z) / (vs[p + 1].Y - vs[p].Y);
+                    var z2 = vs[0].Z + (y - vs[0].Y) * (vs[2].Z - vs[0].Z) / (vs[2].Y - vs[0].Y);
                     Vector3 n1 = new(), n2 = new();
                     if (pseudoNormals != null)
                     {
@@ -1650,7 +1650,8 @@ namespace GouraudShading
                         if (pseudoNormals != null)
                         {
                             var n = x2 == x1 ? n1 : n1 + (x - x1) * (n2 - n1) / (x2 - x1);
-                            brightness = MathF.Min(1, MathF.Abs(light.X * n.X + light.Y * n.Y + light.Z * n.Z));
+                            n = MakePositiveNormal(n);
+                            brightness = Clip(0, 1, light.X * n.X + light.Y * n.Y + light.Z * n.Z);
                             color = Color.FromArgb(255, (int)(base_color.R * brightness), (int)(base_color.G * brightness), (int)(base_color.B * brightness));
                         }
                         bitmap.SetPixel(x, y, color);
@@ -1658,6 +1659,20 @@ namespace GouraudShading
                 }
             }
         }
+
+        float Clip(float min, float max, float value)
+        {
+            return MathF.Min(MathF.Max(min, max), MathF.Max(MathF.Min(min, max), value));
+        }
+
+        /// <summary>
+        /// 法線を視点(Z方向)から見て正の方向になるようにする
+        /// </summary>
+        Vector3 MakePositiveNormal(Vector3 normal)
+        {
+            return normal.Z > 0 ? normal : -normal;
+        }
+
 
         Vector3[] TransformVertices(Vector3[] vertices, Vector3 offset)
         {

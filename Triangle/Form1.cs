@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace Triangle
 {
     public partial class Form1 : Form
@@ -28,7 +30,8 @@ namespace Triangle
             (float X, float Y, float Z) b = new(vs[2].X - vs[0].X, vs[2].Y - vs[0].Y, vs[2].Z - vs[0].Z);
             float n = MathF.Sqrt(MathF.Pow(a.Y * b.Z - a.Z * b.Y, 2) + MathF.Pow(a.Z * b.X - a.X * b.Z, 2) + MathF.Pow(a.X * b.Y - a.Y * b.X, 2));
             (float X, float Y, float Z) normal = new((a.Y * b.Z - a.Z * b.Y) / n, (a.Z * b.X - a.X * b.Z) / n, (a.X * b.Y - a.Y * b.X) / n); // 法線ベクトル
-            float k = MathF.Abs(light.X * normal.X + light.Y * normal.Y + light.Z * normal.Z);                     // 光が三角形に真っすぐに当たっている割合
+            normal = normal.Z > 0 ? normal : new(-normal.X, -normal.Y, -normal.Z);                                  // 法線を視点(Z方向)から見て正の方向になるようにする
+            float k = Clip(0, 1, light.X * normal.X + light.Y * normal.Y + light.Z * normal.Z);                     // 光が三角形に真っすぐに当たっている割合
             var bitmap = new Bitmap(e.ClipRectangle.Width, e.ClipRectangle.Height); // 画面サイズの画像データを作る
             for (var y = (int)vs[0].Y; y < vs[2].Y; y++)                            // 三角形を覆う全ての横線について行う
             {
@@ -40,6 +43,11 @@ namespace Triangle
                 for (int i = (int)Math.Min(x1, x2); i <= (int)Math.Max(x1, x2); ++i) bitmap.SetPixel(i, y, color);
             }
             e.Graphics.DrawImage(bitmap, 0, 0);                                     //画像データを画面に表示する
+        }
+
+        float Clip(float min, float max, float value)
+        {
+            return MathF.Min(MathF.Max(min, max), MathF.Max(MathF.Min(min, max), value));
         }
 
         private void timer1_Tick(object sender, EventArgs e)

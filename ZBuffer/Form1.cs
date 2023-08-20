@@ -45,6 +45,11 @@ namespace ZBuffer
             e.Graphics.DrawImage(bitmap, 0, 0);                                     //画像データを画面に表示する
         }
 
+        float Clip(float min, float max, float value)
+        {
+            return MathF.Min(MathF.Max(min, max), MathF.Max(MathF.Min(min, max), value));
+        }
+
         (float X, float Y, float Z)[] TransformVertices((float X, float Y, float Z)[] vertices)
         {
             (float X, float Y, float Z) offset = new(250f, 250f, 0);                    // 平行移動の量
@@ -66,7 +71,8 @@ namespace ZBuffer
             (float X, float Y, float Z) b = new(vs[2].X - vs[0].X, vs[2].Y - vs[0].Y, vs[2].Z - vs[0].Z);
             float n = MathF.Sqrt(MathF.Pow(a.Y * b.Z - a.Z * b.Y, 2) + MathF.Pow(a.Z * b.X - a.X * b.Z, 2) + MathF.Pow(a.X * b.Y - a.Y * b.X, 2));
             (float X, float Y, float Z) normal = new((a.Y * b.Z - a.Z * b.Y) / n, (a.Z * b.X - a.X * b.Z) / n, (a.X * b.Y - a.Y * b.X) / n); // 法線ベクトル
-            return MathF.Abs(light.X * normal.X + light.Y * normal.Y + light.Z * normal.Z);                     // 光が三角形に真っすぐに当たっている割合
+            normal = normal.Z > 0 ? normal : new(-normal.X, -normal.Y, -normal.Z);              // 法線ベクトルを視点(Z方向)から見て正の方向になるようにする
+            return Clip(0, 1, light.X * normal.X + light.Y * normal.Y + light.Z * normal.Z);    // 光が三角形に真っすぐに当たっている割合
         }
 
         private void timer1_Tick(object sender, EventArgs e)
