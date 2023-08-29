@@ -4,11 +4,11 @@ namespace Texture
 {
     public partial class Form1 : Form
     {
-        float thetaX = 0.3f;                                               // X軸回転角度
-        float thetaY = 0.5f;                                               // Y軸回転角度
+        float thetaX = 0.2f;                                               // X軸回転角度
+        float thetaY = -0.4f;                                               // Y軸回転角度
         float thetaZ = 0;                                                           // Z軸回転角度
-        float scale = 50f;                                                          // 拡大係数
-        const float light_thetaX = 1 * MathF.PI / 3;
+        float scale = 55;                                                          // 拡大係数
+        const float light_thetaX = 1.5f;
         Vector3 light = new(0, MathF.Cos(light_thetaX), MathF.Sin(light_thetaX));   // 光の方向ベクトル
         Vector3 offset = new(300f, 450f, 0);                                        // 平行移動の量
         //Model model = new("../../../Model/1.csv");                                  // 1.csvは球形だが同じ位置で法線ベクトルが異なる別の頂点が存在し、法線が不連続に切り替わる(例:頂点1と頂点396)
@@ -129,7 +129,7 @@ namespace Texture
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            //thetaY += 0.05f; // 一定時間ごとにY軸回転角度を増やす
+            thetaY += 0.01f; // 一定時間ごとにY軸回転角度を増やす
             Invalidate();
         }
     }
