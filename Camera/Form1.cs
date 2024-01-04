@@ -1,4 +1,7 @@
 using System.Numerics;
+using System.Diagnostics;
+using System.Drawing.Imaging;
+using System.Windows.Forms;
 
 namespace Camera
 {
@@ -7,19 +10,18 @@ namespace Camera
         float thetaX = 0.2f;                                               // X軸回転角度
         float thetaY = -0.4f;                                               // Y軸回転角度
         float thetaZ = 0;                                                           // Z軸回転角度
-        float scale = 55;                                                          // 拡大係数
+        float scale = 5;                                                          // 拡大係数
         const float light_thetaX = 1.5f;
         Vector3 light = new(0, MathF.Cos(light_thetaX), MathF.Sin(light_thetaX));   // 光の方向ベクトル
         Vector3 offset = new(300f, 450f, 0);                                        // 平行移動の量
-        //Model model = new("../../../Model/Shanghai.csv");
-        Model model = new("../../../Model/Shanghai.pmx", true);
+        Model model = new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\NuKasa_博麗神社mk2\\博麗神社(可動部省略).pmx", true);
 
         public Form1()
         {
             InitializeComponent();
         }
 
-        private void DrawPolygons(Vertex[] vertices, Bitmap screen, float[,] zBuffer, bool textureMapping, bool gourauShading)
+        private void DrawPolygonsWithByteArray(Vertex[] vertices, int width, int height, int stride, Byte[] screenImgData, float[,] zBuffer, bool textureMapping, bool gourauShading)
         {
             for (int m = 0; m < model.faces.Length; ++m)
             {
@@ -34,11 +36,12 @@ namespace Camera
                 }
                 vs = vs.OrderBy(v => v.pos.Y).ToArray();
                 if (MathF.Abs(vs[0].pos.Y - vs[2].pos.Y) < 0.1f) continue;                  // 三角形じゃない
+                if (Math.Max(Math.Max(vs[0].pos.X, vs[1].pos.X), vs[2].pos.X) - Math.Min(Math.Min(vs[0].pos.X, vs[1].pos.X), vs[2].pos.X) < 0.1f) continue; // 三角形じゃない
                 var normal = MakePositiveNormal(GetNormalOfTrigngle(vs.Select(v => v.pos).ToArray()));
                 float brightness = Clip(0, 1, light.X * normal.X + light.Y * normal.Y + light.Z * normal.Z);
                 for (int y = (int)vs[0].pos.Y; y < vs[2].pos.Y; ++y)                        // 三角形を覆う全ての横線について行う
                 {
-                    if (y < 0 || y >= screen.Height) continue;                              // 画面サイズでクリッピング
+                    if (y < 0 || y >= height) continue;                              // 画面サイズでクリッピング
                     int j = (MathF.Abs(vs[0].pos.Y - vs[1].pos.Y) < 0.1f || y >= vs[1].pos.Y) ? 1 : 0;
                     var x1 = Clip(vs[j].pos.X, vs[j + 1].pos.X, vs[j].pos.X + (y - vs[j].pos.Y) * (vs[j + 1].pos.X - vs[j].pos.X) / (vs[j + 1].pos.Y - vs[j].pos.Y));  // 計算誤差対策
                     var x2 = Clip(vs[0].pos.X, vs[2].pos.X, vs[0].pos.X + (y - vs[0].pos.Y) * (vs[2].pos.X - vs[0].pos.X) / (vs[2].pos.Y - vs[0].pos.Y));
@@ -50,7 +53,7 @@ namespace Camera
                     var uv2 = vs[0].uv + (y - vs[0].pos.Y) * (vs[2].uv - vs[0].uv) / (vs[2].pos.Y - vs[0].pos.Y);
                     for (int x = (int)Math.Min(x1, x2); x <= (int)Math.Max(x1, x2); ++x)
                     {
-                        if (x < 0 || x >= screen.Width) continue;                           // 画面サイズでクリッピング
+                        if (x < 0 || x >= width) continue;                                  // 画面サイズでクリッピング
                         var z = x2 == x1 ? z1 : z1 + (x - x1) * (z2 - z1) / (x2 - x1);      // Z座標を計算
                         if (z > zBuffer[x, y]) continue;                                    // 今回のものが奥にあれば何もしない
                         if (textureMapping)
@@ -69,10 +72,27 @@ namespace Camera
                             brightenedColor = Color.FromArgb(color.A, (int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
                         }
                         if (brightenedColor.A == 0) continue;                                 // 透明な色は塗らず、Zバッファを更新しない
-                        screen.SetPixel(x, y, brightenedColor);
+                        for (int i = 0; i < 4; ++i) screenImgData[stride * y + 4 * x + i] = (byte)((brightenedColor.ToArgb() >> (i * 8)) & 0xFF);
                         zBuffer[x, y] = z;                                                    // 奥行の値を更新
                     }
                 }
+            }
+        }
+
+        private void DrawPolygons(Vertex[] vertices, Bitmap screen, float[,] zBuffer, bool textureMapping, bool gourauShading)
+        {
+            int width = screen.Width, height = screen.Height;
+            var screenBmpData = screen.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            try
+            {
+                var stride = screenBmpData.Stride;
+                var screenImgData = new byte[stride * height];
+                DrawPolygonsWithByteArray(vertices, width, height, stride, screenImgData, zBuffer, textureMapping, gourauShading);
+                System.Runtime.InteropServices.Marshal.Copy(screenImgData, 0, screenBmpData.Scan0, screenImgData.Length);
+            }
+            finally
+            {
+                screen.UnlockBits(screenBmpData);
             }
         }
 
@@ -125,12 +145,22 @@ namespace Camera
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
+            var sw = new Stopwatch();
+            sw.Start();
             var screen = new Bitmap(e.ClipRectangle.Width, e.ClipRectangle.Height);     // 画面サイズの画像データを作る
             var zBuffers = new float[e.ClipRectangle.Width, e.ClipRectangle.Height];    // ピクセルの奥行きの値
             for (int i = 0; i < zBuffers.GetLength(0); i++) for (int j = 0; j < zBuffers.GetLength(1); j++) zBuffers[i, j] = float.MaxValue; // 初期値
+            //Debug.WriteLine($"\tinitialize time : {sw.Elapsed}");
+            sw.Restart();
             var transformedVertices = TransformVertices(model.vertices, offset);        // 頂点の平行移動と回転
+            //Debug.WriteLine($"\tTarnsformVertices time : {sw.Elapsed}");
+            sw.Restart();
             DrawPolygons(transformedVertices, screen, zBuffers, true, true);            // テクスチャマッピングと、グーローシェーディングは引数でON/OFF切り替え可能
+            Debug.WriteLine($"\tDrawPolygons time : {sw.Elapsed}");
+            sw.Restart();
             e.Graphics.DrawImage(screen, 0, 0);                                         // 画像データを画面に表示する
+            //Debug.WriteLine($"\tDrawImage time : {sw.Elapsed}");
+            sw.Stop();
         }
     }
 }
