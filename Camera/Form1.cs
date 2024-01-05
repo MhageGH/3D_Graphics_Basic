@@ -61,7 +61,14 @@ namespace Camera
                             var uv = x2 == x1 ? uv1 : uv1 + (x - x1) * (uv2 - uv1) / (x2 - x1);
                             uv.X = Clip(0, 1, uv.X);                                        // åvéZåÎç∑ëŒçÙ
                             uv.Y = Clip(0, 1, uv.Y);
-                            if (texture != null) color = texture.GetPixel((int)((texture.Width - 1) * uv.X), (int)((texture.Height - 1) * uv.Y));
+                            if (texture != null)
+                            {
+                                int X = (int)((texture.width - 1) * uv.X);
+                                int Y = (int)((texture.height - 1) * uv.Y);
+                                int argb = 0;
+                                for (int i = 0; i < 4; ++i) argb |= (int)(texture.bytes[texture.stride * Y + 4 * X + i]) << (i * 8);
+                                color = Color.FromArgb(argb);
+                            }
                         }
                         var brightenedColor = Color.FromArgb(color.A, (int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
                         if (gourauShading)

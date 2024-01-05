@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.Numerics;
 using System.Text;
 
@@ -40,6 +41,22 @@ namespace Camera
         }
     }
 
+    internal class Texture
+    {
+        public byte[] bytes;
+        public int width, height, stride;
+        
+        public Texture() { }
+
+        public Texture(byte[] bytes, int width, int height, int stride)
+        {
+            this.bytes = bytes;
+            this.width = width;
+            this.height = height;
+            this.stride = stride;
+        }
+    }
+
     /// <summary>
     /// 材質。色とテクスチャを持つ。
     /// </summary>
@@ -47,11 +64,11 @@ namespace Camera
     {
         public String name;
         public Color color;
-        public Bitmap? texture;
+        public Texture? texture = null;
 
         public Material() { }
 
-        public Material(String name, Color color, Bitmap? texture)
+        public Material(String name, Color color, Texture? texture)
         {
             this.name = name;
             this.color = color;
@@ -95,8 +112,19 @@ namespace Camera
                     var rgba = new int[4];
                     for (int j = 0; j < rgba.Length; ++j) rgba[j] = (int)(255 * Convert.ToSingle(data[i][3 + j]));
                     var textureFilename = data[i][26].Trim('\"');   // PMX EditorのCSV出力は文字列がダブルクォーテーションで囲われている。Excelなどで編集して保存するとダブルクォーテーションがなくなる。
-                    var texture = textureFilename == "" ? null : new Bitmap(Path.GetDirectoryName(filename) + "/" + textureFilename);  // テクスチャファイルはbmp, png, jpgに対応。tgaは非対応。モデルのファイルと同じフォルダにあるとする
-                    materialList.Add(new(data[i][1], Color.FromArgb(rgba[3], rgba[0], rgba[1], rgba[2]), texture));
+                    var bitmap = textureFilename == "" ? null : new Bitmap(Path.GetDirectoryName(filename) + "/" + textureFilename);  // テクスチャファイルはbmp, png, jpgに対応。tgaは非対応。モデルのファイルと同じフォルダにあるとする
+                    var material = new Material(data[i][1], Color.FromArgb(rgba[3], rgba[0], rgba[1], rgba[2]), null);
+                    if (bitmap != null)
+                    {
+                        int width = bitmap.Width, height = bitmap.Height;
+                        var bmpData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+                        var stride = bmpData.Stride;
+                        var bytes = new byte[stride * height];
+                        System.Runtime.InteropServices.Marshal.Copy(bytes, 0, bmpData.Scan0, bytes.Length);
+                        bitmap.UnlockBits(bmpData);
+                        material.texture = new Texture(bytes, width, height, stride);
+                    }
+                    materialList.Add(material);
                 }
             }
             vertices = vertexList.ToArray();
@@ -254,7 +282,17 @@ namespace Camera
                             textureIndex = reader.ReadInt32(); // 符号あり 32bit
                             break;
                     }
-                    materials[i].texture = textureIndex == -1 ? null : new Bitmap(Path.GetDirectoryName(filename) + "/" + texturePaths[textureIndex]);
+                    var bitmap = textureIndex == -1 ? null : new Bitmap(Path.GetDirectoryName(filename) + "/" + texturePaths[textureIndex]);
+                    if (bitmap != null)
+                    {
+                        int width = bitmap.Width, height = bitmap.Height;
+                        var bmpData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+                        var stride = bmpData.Stride;
+                        var bytes = new byte[stride * height];
+                        System.Runtime.InteropServices.Marshal.Copy(bmpData.Scan0, bytes, 0, bytes.Length);
+                        bitmap.UnlockBits(bmpData);
+                        materials[i].texture = new Texture(bytes, width, height, stride);
+                    }
                     reader.ReadBytes(textureIndexSize + 1); // 使用しない
                     var commonToonFlag = reader.ReadByte();
                     if (commonToonFlag == 0) reader.ReadBytes(textureIndexSize);    // どちらも使用しない
