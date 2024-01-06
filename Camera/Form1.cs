@@ -1,7 +1,6 @@
-using System.Numerics;
 using System.Diagnostics;
 using System.Drawing.Imaging;
-using System.Windows.Forms;
+using System.Numerics;
 
 namespace Camera
 {
