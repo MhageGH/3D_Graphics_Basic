@@ -105,6 +105,7 @@ namespace Camera
                     for (int j = 0; j < pseudoNormal.Length; ++j) pseudoNormal[j] = Convert.ToSingle(data[i][5 + j]);
                     var uv = new float[2];
                     for (int j = 0; j < uv.Length; ++j) uv[j] = Convert.ToSingle(data[i][9 + j]);
+                    pos[1] *= -1; pseudoNormal[1] *= -1;    // MMDモデルはY軸が反転しているので反転する
                     vertexList.Add(new(new Vector3(pos), new Vector3(pseudoNormal), new Vector2(uv)));
                 }
                 if (data[i][0] == "Material")
@@ -192,10 +193,10 @@ namespace Camera
                 {
                     vertices[i] = new Vertex();
                     vertices[i].pos.X = reader.ReadSingle();
-                    vertices[i].pos.Y = reader.ReadSingle();
+                    vertices[i].pos.Y = -reader.ReadSingle();           // MMDモデルはY軸が反転しているので反転する
                     vertices[i].pos.Z = reader.ReadSingle();
                     vertices[i].pseudoNormal.X = reader.ReadSingle();
-                    vertices[i].pseudoNormal.Y = reader.ReadSingle();
+                    vertices[i].pseudoNormal.Y = -reader.ReadSingle();  // MMDモデルはY軸が反転しているので反転する
                     vertices[i].pseudoNormal.Z = reader.ReadSingle();
                     vertices[i].uv.X = reader.ReadSingle();
                     vertices[i].uv.Y = reader.ReadSingle();

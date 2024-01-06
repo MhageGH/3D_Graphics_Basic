@@ -9,49 +9,48 @@ namespace Camera
         Bitmap screen;
         float[,] zBuffers;
         Vector3 lightVector;
+        bool useTextureMapping; 
+        bool useGourauShading;
 
-        public Render(Bitmap screen, Vector3 lightVector)
+        public Render(Bitmap screen, Vector3 lightVector, bool useTextureMapping, bool useGourauShading)
         {
-            if (lightVector.LengthSquared() <= 0) throw new Exception("Invalid light vector length.");
             this.screen = screen;
             this.lightVector = Vector3.Normalize(lightVector);
+            this.useTextureMapping = useTextureMapping;
+            this.useGourauShading = useGourauShading;
             zBuffers = new float[screen.Width, screen.Height];
             for (int i = 0; i < zBuffers.GetLength(0); i++) for (int j = 0; j < zBuffers.GetLength(1); j++) zBuffers[i, j] = float.MaxValue; // 初期値
         }
 
-        public void DrawModel(Model model, Vector3 offset, float scale, float thetaX, float thetaY, float thetaZ)
+        public void DrawModel(Model model, Matrix matrix, Matrix matrixR)
         {
             var sw = new Stopwatch();
             sw.Start();
-            var transformedVertices = TransformVertices(model.vertices, offset, scale, thetaX, thetaY, thetaZ);        // 頂点の平行移動と回転
+            var transformedVertices = TransformVertices(model.vertices, matrix, matrixR);
             Debug.WriteLine($"\tTarnsformVertices time : {sw.Elapsed}");
             sw.Restart();
-            DrawPolygons(model, transformedVertices, true, true);
+            DrawPolygons(model, transformedVertices);
             Debug.WriteLine($"\tDrawPolygons time : {sw.Elapsed}");
             sw.Stop();
         }
 
-        private Vertex[] TransformVertices(Vertex[] vertices, Vector3 offset, float scale, float thetaX, float thetaY, float thetaZ)
+        /// <summary>
+        /// MatrixRは法線ベクトル用の線形変換のみの合成行列：線形変換と平行移動が複数組み合わさっていても法線ベクトルには線形変換だけが残る
+        ///       ⇒　R'(R(v + d + n) + d') – R'(R(v + d) + d') = R'R(v + d + n) + R'd' – R'R(v + d) – R'd' = R'Rn
+        /// </summary>
+        private Vertex[] TransformVertices(Vertex[] vertices, Matrix matrix, Matrix matrixR)
         {
-            var vs = new Vertex[vertices.Length];  // 移動後の頂点
-            for (int i = 0; i < vs.Length; ++i)
+            var vertices_out = new Vertex[vertices.Length];
+            for (int i = 0; i < vertices_out.Length; ++i)
             {
-                Vector3 pos = new(vertices[i].pos.X, -vertices[i].pos.Y, vertices[i].pos.Z);   // MMDモデルはY軸が反転している
-                pos = new(pos.Z * MathF.Sin(thetaY) + pos.X * MathF.Cos(thetaY), pos.Y, pos.Z * MathF.Cos(thetaY) - pos.X * MathF.Sin(thetaY));// Y軸回転
-                pos = new(pos.X * MathF.Cos(thetaZ) - pos.Y * MathF.Sin(thetaZ), pos.X * MathF.Sin(thetaZ) + pos.Y * MathF.Cos(thetaZ), pos.Z);// Z軸回転
-                pos = new(pos.X, pos.Y * MathF.Cos(thetaX) - pos.Z * MathF.Sin(thetaX), pos.Y * MathF.Sin(thetaX) + pos.Z * MathF.Cos(thetaX));// X軸回転
-                pos = new(scale * pos.X, scale * pos.Y, scale * pos.Z);                    // 拡大
-                pos = new(pos.X + offset.X, pos.Y + offset.Y, pos.Z + offset.Z);           // 平行移動
-                Vector3 pn = new(vertices[i].pseudoNormal.X, -vertices[i].pseudoNormal.Y, vertices[i].pseudoNormal.Z);     // MMDモデルはY軸が反転している
-                pn = new(pn.Z * MathF.Sin(thetaY) + pn.X * MathF.Cos(thetaY), pn.Y, pn.Z * MathF.Cos(thetaY) - pn.X * MathF.Sin(thetaY));// Y軸回転
-                pn = new(pn.X * MathF.Cos(thetaZ) - pn.Y * MathF.Sin(thetaZ), pn.X * MathF.Sin(thetaZ) + pn.Y * MathF.Cos(thetaZ), pn.Z);// Z軸回転
-                pn = new(pn.X, pn.Y * MathF.Cos(thetaX) - pn.Z * MathF.Sin(thetaX), pn.Y * MathF.Sin(thetaX) + pn.Z * MathF.Cos(thetaX));// X軸回転
-                vs[i] = new Vertex(pos, pn, vertices[i].uv);
+                var pos = matrix * vertices[i].pos;
+                var pn = Vector3.Normalize(matrixR * vertices[i].pseudoNormal);
+                vertices_out[i] = new Vertex(pos, pn, vertices[i].uv);
             }
-            return vs;
+            return vertices_out;
         }
 
-        private void DrawPolygons(Model model, Vertex[] vertices, bool textureMapping, bool gourauShading)
+        private void DrawPolygons(Model model, Vertex[] vertices)
         {
             int width = screen.Width, height = screen.Height;
             var screenBmpData = screen.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
@@ -59,7 +58,7 @@ namespace Camera
             {
                 var stride = screenBmpData.Stride;
                 var screenImgData = new byte[stride * height];
-                DrawPolygonsWithByteArray(model, vertices, width, height, stride, screenImgData, textureMapping, gourauShading);
+                DrawPolygonsWithByteArray(model, vertices, width, height, stride, screenImgData);
                 System.Runtime.InteropServices.Marshal.Copy(screenImgData, 0, screenBmpData.Scan0, screenImgData.Length);
             }
             finally
@@ -68,7 +67,7 @@ namespace Camera
             }
         }
 
-        private void DrawPolygonsWithByteArray(Model model, Vertex[] vertices, int width, int height, int stride, Byte[] screenImgData, bool textureMapping, bool gourauShading)
+        private void DrawPolygonsWithByteArray(Model model, Vertex[] vertices, int width, int height, int stride, Byte[] screenImgData)
         {
             for (int m = 0; m < model.faces.Length; ++m)
             {
@@ -103,7 +102,7 @@ namespace Camera
                         if (x < 0 || x >= width) continue;                                  // 画面サイズでクリッピング
                         var z = x2 == x1 ? z1 : z1 + (x - x1) * (z2 - z1) / (x2 - x1);      // Z座標を計算
                         if (z > zBuffers[x, y]) continue;                                    // 今回のものが奥にあれば何もしない
-                        if (textureMapping)
+                        if (useTextureMapping)
                         {
                             var uv = x2 == x1 ? uv1 : uv1 + (x - x1) * (uv2 - uv1) / (x2 - x1);
                             uv.X = ClipValue(0, 1, uv.X);                                        // 計算誤差対策
@@ -118,7 +117,7 @@ namespace Camera
                             }
                         }
                         var brightenedColor = Color.FromArgb(color.A, (int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
-                        if (gourauShading)
+                        if (useGourauShading)
                         {
                             var n = x2 == x1 ? pn1 : pn1 + (x - x1) * (pn2 - pn1) / (x2 - x1);
                             n = MakePositiveNormal(n);
