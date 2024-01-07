@@ -34,10 +34,10 @@ namespace Camera
             var sw = new Stopwatch();
             sw.Start();
             var transformedVertices = TransformVertices(model.vertices, matrix);
-            Debug.WriteLine($"\tTarnsformVertices time : {sw.Elapsed}");
+            //Debug.WriteLine($"\tTarnsformVertices time : {sw.Elapsed}");
             sw.Restart();
             DrawPolygons(model, transformedVertices);
-            Debug.WriteLine($"\tDrawPolygons time : {sw.Elapsed}");
+            //Debug.WriteLine($"\tDrawPolygons time : {sw.Elapsed}");
             sw.Stop();
         }
 
