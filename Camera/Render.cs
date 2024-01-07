@@ -22,11 +22,11 @@ namespace Camera
             for (int i = 0; i < zBuffers.GetLength(0); i++) for (int j = 0; j < zBuffers.GetLength(1); j++) zBuffers[i, j] = float.MaxValue; // 初期値
         }
 
-        public void DrawModel(Model model, Matrix matrix, Matrix matrixR)
+        public void DrawModel(Model model, Matrix matrix)
         {
             var sw = new Stopwatch();
             sw.Start();
-            var transformedVertices = TransformVertices(model.vertices, matrix, matrixR);
+            var transformedVertices = TransformVertices(model.vertices, matrix);
             Debug.WriteLine($"\tTarnsformVertices time : {sw.Elapsed}");
             sw.Restart();
             DrawPolygons(model, transformedVertices);
@@ -34,17 +34,15 @@ namespace Camera
             sw.Stop();
         }
 
-        /// <summary>
-        /// MatrixRは法線ベクトル用の線形変換のみの合成行列：線形変換と平行移動が複数組み合わさっていても法線ベクトルには線形変換だけが残る
-        ///       ⇒　R'(R(v + d + n) + d') – R'(R(v + d) + d') = R'R(v + d + n) + R'd' – R'R(v + d) – R'd' = R'Rn
-        /// </summary>
-        private Vertex[] TransformVertices(Vertex[] vertices, Matrix matrix, Matrix matrixR)
+        private Vertex[] TransformVertices(Vertex[] vertices, Matrix matrix)
         {
             var vertices_out = new Vertex[vertices.Length];
             for (int i = 0; i < vertices_out.Length; ++i)
             {
                 var pos = matrix * vertices[i].pos;
-                var pn = Vector3.Normalize(matrixR * vertices[i].pseudoNormal);
+                // 頂点p上の法線ベクトルnのアフィン変換は原点始点の法線ベクトルから零ベクトルのアフィン変換を引けばよい
+                // ⇒　R2(R1(p + n + d1) + d2) – R2(R1(p + d1) + d2) = R2(R1(n + d1) + d2) – R2(R1(0 + d1) + d2)
+                var pn = Vector3.Normalize(matrix * vertices[i].pseudoNormal - matrix * new Vector3(0));
                 vertices_out[i] = new Vertex(pos, pn, vertices[i].uv);
             }
             return vertices_out;

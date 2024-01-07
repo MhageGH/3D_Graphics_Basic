@@ -24,9 +24,8 @@ namespace Camera
         {
             var screen = new Bitmap(e.ClipRectangle.Width, e.ClipRectangle.Height);
             var render = new Render(screen, lightVector, true, true);
-            var matrixR = Matrix.CreateRotationX(thetaX) * Matrix.CreateRotationZ(thetaZ) * Matrix.CreateRotationY(thetaY);
-            var matrix = Matrix.CreateTranslation(translationVector) * Matrix.CreateScale(scale) * matrixR;
-            render.DrawModel(model, matrix, matrixR);
+            var matrix = Matrix.CreateTranslation(translationVector) * Matrix.CreateScale(scale) * Matrix.CreateRotationX(thetaX) * Matrix.CreateRotationZ(thetaZ) * Matrix.CreateRotationY(thetaY);
+            render.DrawModel(model, matrix);
             e.Graphics.DrawImage(screen, 0, 0);
         }
     }
