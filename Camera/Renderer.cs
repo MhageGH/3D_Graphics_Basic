@@ -1,20 +1,27 @@
 ﻿using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Numerics;
+using System.Reflection;
 
 namespace Camera
 {
-    internal class Render
+    internal class Renderer
     {
         Bitmap screen;
+        int stride;
+        byte[] screenImgData;
         float[,] zBuffers;
         Vector3 lightVector;
         bool useTextureMapping; 
         bool useGourauShading;
 
-        public Render(Bitmap screen, Vector3 lightVector, bool useTextureMapping, bool useGourauShading)
+        public Renderer(Bitmap screen, Vector3 lightVector, bool useTextureMapping, bool useGourauShading)
         {
             this.screen = screen;
+            var screenBmpData = screen.LockBits(new Rectangle(0, 0, screen.Width, screen.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            stride = screenBmpData.Stride;
+            screenImgData = new byte[stride * screen.Height];
+            screen.UnlockBits(screenBmpData);
             this.lightVector = Vector3.Normalize(lightVector);
             this.useTextureMapping = useTextureMapping;
             this.useGourauShading = useGourauShading;
@@ -48,25 +55,17 @@ namespace Camera
             return vertices_out;
         }
 
-        private void DrawPolygons(Model model, Vertex[] vertices)
+        public void Render()
         {
-            int width = screen.Width, height = screen.Height;
-            var screenBmpData = screen.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            try
-            {
-                var stride = screenBmpData.Stride;
-                var screenImgData = new byte[stride * height];
-                DrawPolygonsWithByteArray(model, vertices, width, height, stride, screenImgData);
-                System.Runtime.InteropServices.Marshal.Copy(screenImgData, 0, screenBmpData.Scan0, screenImgData.Length);
-            }
-            finally
-            {
-                screen.UnlockBits(screenBmpData);
-            }
+            var screenBmpData = screen.LockBits(new Rectangle(0, 0, screen.Width, screen.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            System.Runtime.InteropServices.Marshal.Copy(screenImgData, 0, screenBmpData.Scan0, screenImgData.Length);
+            screen.UnlockBits(screenBmpData);
         }
 
-        private void DrawPolygonsWithByteArray(Model model, Vertex[] vertices, int width, int height, int stride, Byte[] screenImgData)
+        private void DrawPolygons(Model model, Vertex[] vertices)
         {
+            int width = screen.Width;
+            int height = screen.Height;
             for (int m = 0; m < model.faces.Length; ++m)
             {
                 var color = model.faces[m].material.color;
