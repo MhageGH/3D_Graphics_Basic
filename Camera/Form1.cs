@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Numerics;
 
 namespace Camera
@@ -13,8 +12,8 @@ namespace Camera
         Vector3 eyePoint = new(0.2f, 0.2f, 1);
         List<Model> models = new()
         {
-            new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\NuKasa_博麗神社mk2\\博麗神社(可動部省略).pmx", true),
-            new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\改造後再配布可\\kirby\\カービィ.pmx", true)
+            new("博麗神社(可動部省略).pmx", true),   // 3Dモデルは別途Webからダウンロードして下さい
+            new("カービィ.pmx", true)
         };
 
         public Form1()
@@ -38,8 +37,8 @@ namespace Camera
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
             var lookDirection = Vector3.Normalize(lookAtPoint - eyePoint);
-            var thetaY = MathF.Acos(-lookDirection.Z / new Vector3(lookDirection.X, 0, lookDirection.Z).Length()) * (lookDirection.X > 0 ? -1f : 1f);
-            var thetaX = MathF.Acos(-lookDirection.Z / new Vector3(0, lookDirection.Y, lookDirection.Z).Length()) * (lookDirection.Y > 0 ? -1f : 1f);
+            var thetaY = -MathF.Atan2(lookDirection.X, -lookDirection.Z);
+            var thetaX = -MathF.Atan2(lookDirection.Y, -lookDirection.Z);
             var screen = new Bitmap(e.ClipRectangle.Width, e.ClipRectangle.Height);
             var renderer = new Renderer(screen, lightVector, true, true);
             var localTransMatrices = new List<Matrix>() { Matrix.Identity, Matrix.CreateScale(localScale1X, localScale1Y, localScale1Z) };

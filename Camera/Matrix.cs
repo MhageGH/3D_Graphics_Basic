@@ -18,6 +18,16 @@ namespace Camera
             }
         }
 
+        static public Matrix CreateRotationZ(float theta)
+        {
+            var matrix = Matrix.Identity;
+            matrix.elements[0, 0] = MathF.Cos(theta);
+            matrix.elements[0, 1] = -MathF.Sin(theta);
+            matrix.elements[1, 0] = MathF.Sin(theta);
+            matrix.elements[1, 1] = MathF.Cos(theta);
+            return matrix;
+        }
+
         static public Matrix CreateRotationX(float theta)
         {
             var matrix = Matrix.Identity;
@@ -35,16 +45,6 @@ namespace Camera
             matrix.elements[0, 2] = MathF.Sin(theta);
             matrix.elements[2, 0] = -MathF.Sin(theta);
             matrix.elements[2, 2] = MathF.Cos(theta);
-            return matrix;
-        }
-
-        static public Matrix CreateRotationZ(float theta)
-        {
-            var matrix = Matrix.Identity;
-            matrix.elements[0, 0] = MathF.Cos(theta);
-            matrix.elements[0, 1] = -MathF.Sin(theta);
-            matrix.elements[1, 0] = MathF.Sin(theta);
-            matrix.elements[1, 1] = MathF.Cos(theta);
             return matrix;
         }
 
