@@ -11,4 +11,5 @@ Visual 3D_Explanation.slnを開き、Polygonプロジェクトをスタートア
 - Polygon：第一回の完成品のプロジェクトです。
 - GouraudShading：第二回の完成品のプロジェクトです。
 - Texture：第三回及び第四回の完成品のプロジェクトです。
+- Camera：第六回の完成品のプロジェクトです。
 - 他はテスト用プロジェクトです。
