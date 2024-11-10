@@ -12,8 +12,8 @@ namespace Camera
         Vector3 eyePoint = new(0.2f, 0.2f, 1);
         List<Model> models = new()
         {
-            new("博麗神社(可動部省略).pmx", true),   // 3Dモデルは別途Webからダウンロードして下さい
-            new("カービィ.pmx", true)
+            new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\NuKasa_博麗神社mk2\\博麗神社(可動部省略).pmx", true),   // 3Dモデルは別途Webからダウンロードして下さい
+            new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\改造後再配布可\\kirby\\カービィ.pmx", true)
         };
 
         public Form1()

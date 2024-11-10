@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GouraudShading", "GouraudSh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Texture", "Texture\Texture.csproj", "{E8C52CD8-B794-4B30-9A4E-3E0CC5475D04}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Camera", "Camera\Camera.csproj", "{F8F42801-8100-4659-A9F9-F27C9B034D37}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Camera", "Camera\Camera.csproj", "{F8F42801-8100-4659-A9F9-F27C9B034D37}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkinMeshAnimation", "SkinMeshAnimation\SkinMeshAnimation.csproj", "{ECD3CA00-65B2-41FC-A9AD-E005F7E661A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{F8F42801-8100-4659-A9F9-F27C9B034D37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8F42801-8100-4659-A9F9-F27C9B034D37}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8F42801-8100-4659-A9F9-F27C9B034D37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECD3CA00-65B2-41FC-A9AD-E005F7E661A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECD3CA00-65B2-41FC-A9AD-E005F7E661A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECD3CA00-65B2-41FC-A9AD-E005F7E661A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECD3CA00-65B2-41FC-A9AD-E005F7E661A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
