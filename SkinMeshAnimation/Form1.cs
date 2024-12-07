@@ -9,7 +9,7 @@ namespace SkinMeshAnimation
         Vector3 viewTranslationVector = new(600f, 900f, 0);
         Vector3 lookAtPoint = new(0, 0, 0);
         Vector3 eyePoint = new(0.2f, 0.2f, 1);
-        readonly Model model = new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\初音ミク.pmx", true)
+        readonly Model model = new("D:\\OneDrive\\繝峨く繝･繝｡繝ｳ繝�\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\蛻晞浹繝溘け.pmx", true)
         ;
 
         public Form1()
