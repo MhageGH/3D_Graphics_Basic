@@ -13,6 +13,8 @@ namespace SkinMeshAnimation
         public Vector3 pos;             // 位置
         public Vector3 pseudoNormal;    // 疑似法線ベクトル
         public Vector2 uv;              // UV座標
+        public uint[] boneNumbers = new uint[4];
+        public float[] boneWeights = new float[4];
 
         public Vertex() { }
 
@@ -202,21 +204,34 @@ namespace SkinMeshAnimation
                     vertices[i].uv.Y = reader.ReadSingle();
                     reader.ReadBytes(16 * numberOfAdditionalUV);    // 使用しない
                     var weightTransformType = reader.ReadByte();
+                    uint ReadBoneNumber(byte s) => s == 1 ? reader.ReadByte() : s == 2 ? reader.ReadUInt16() : reader.ReadUInt32();
                     switch (weightTransformType)
                     {
-                        // 全て使用しない
-                        case 0: // BDEF1
-                            reader.ReadBytes(boneIndexSize);
+                        case 0: // BDEF
+                            vertices[i].boneNumbers[0] = ReadBoneNumber(boneIndexSize);
+                            vertices[i].boneWeights[0] = 1;
                             break;
                         case 1: // BDEF2
-                            reader.ReadBytes(2 * boneIndexSize + 4);
+                            for (int j = 0; j < 2; ++j) vertices[i].boneNumbers[j] = ReadBoneNumber(boneIndexSize);
+                            vertices[i].boneWeights[0] = reader.ReadSingle();
+                            vertices[i].boneWeights[1] = 1 - vertices[i].boneWeights[0];
                             break;
                         case 2: // BDEF4
-                            reader.ReadBytes(4 * boneIndexSize + 4 * 4);
+                            for (int j = 0; j < 4; ++j) vertices[i].boneNumbers[j] = ReadBoneNumber(boneIndexSize);
+                            for (int j = 0; j < 4; ++j) vertices[i].boneWeights[j] = reader.ReadSingle();
+                            // boneWeightの合計が1でない場合の対応
+                            float s = 0;
+                            for (int j = 0; j < 4; ++j) s += vertices[i].boneWeights[j];
+                            for (int j = 0; j < 4; ++j) vertices[i].boneWeights[j] /= s;    
                             break;
-                        case 3: // SDEF
-                            reader.ReadBytes(2 * boneIndexSize + 4 + 3 * 12);
+                        case 3: // SDEF →非対応だがBDEF2で代用
+                            for (int j = 0; j < 2; ++j) vertices[i].boneNumbers[j] = ReadBoneNumber(boneIndexSize);
+                            vertices[i].boneWeights[0] = reader.ReadSingle();
+                            vertices[i].boneWeights[1] = 1 - vertices[i].boneWeights[0];
+                            reader.ReadBytes(3 * 12);
                             break;
+                        case 4: // QDEF
+                            throw new Exception("QDEFは非対応");
                     }
                     reader.ReadSingle();    // 使用しない
                 }
