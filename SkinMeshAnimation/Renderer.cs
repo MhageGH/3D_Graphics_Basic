@@ -113,13 +113,13 @@ namespace SkinMeshAnimation
                                 color = Color.FromArgb(argb);
                             }
                         }
-                        var brightenedColor = Color.FromArgb(color.A, (int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
+                        var brightenedColor = Color.FromArgb(color.A, (byte)(color.R * brightness), (byte)(color.G * brightness), (byte)(color.B * brightness));
                         if (useGourauShading)
                         {
                             var n = x2 == x1 ? pn1 : pn1 + (x - x1) * (pn2 - pn1) / (x2 - x1);
                             n = MakePositiveNormal(n);
-                            brightness = ClipValue(0, 1, lightVector.X * n.X + lightVector.Y * n.Y + lightVector.Z * n.Z);
-                            brightenedColor = Color.FromArgb(color.A, (int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
+                            var b = ClipValue(0, 1, lightVector.X * n.X + lightVector.Y * n.Y + lightVector.Z * n.Z);
+                            brightenedColor = Color.FromArgb(color.A, (byte)(color.R * b), (byte)(color.G * b), (byte)(color.B * b));
                         }
                         if (brightenedColor.A == 0) continue;                                 // 透明な色は塗らず、Zバッファを更新しない
                         for (int i = 0; i < 4; ++i) screenImgData[stride * y + 4 * x + i] = (byte)((brightenedColor.ToArgb() >> (i * 8)) & 0xFF);

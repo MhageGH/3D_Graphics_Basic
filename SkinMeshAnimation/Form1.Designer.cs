@@ -43,7 +43,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ActiveBorder;
-            ClientSize = new Size(668, 534);
+            ClientSize = new Size(1184, 961);
             DoubleBuffered = true;
             Name = "Form1";
             Text = "SkinMeshAnimation";

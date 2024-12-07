@@ -4,12 +4,12 @@ namespace SkinMeshAnimation
 {
     public partial class Form1 : Form
     {
-        readonly float viewScale = 50;
-        Vector3 lightVector = new(0, 0.707f, 0.997f);
-        Vector3 viewTranslationVector = new(300f, 450f, 0);
+        readonly float viewScale = 45;
+        Vector3 lightVector = new(0, -0.5f, 1f);
+        Vector3 viewTranslationVector = new(600f, 900f, 0);
         Vector3 lookAtPoint = new(0, 0, 0);
         Vector3 eyePoint = new(0.2f, 0.2f, 1);
-        readonly Model model = new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\改造後再配布可\\kirby\\カービィ.pmx", true)
+        readonly Model model = new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\初音ミク.pmx", true)
         ;
 
         public Form1()
