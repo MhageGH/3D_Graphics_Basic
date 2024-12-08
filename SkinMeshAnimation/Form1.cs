@@ -11,6 +11,7 @@ namespace SkinMeshAnimation
         Vector3 eyePoint = new(0.2f, 0.2f, 1);
         readonly Model model = new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\初音ミク.pmx", true);
         readonly BoneData boneData = new();
+        int frameNumber = 0;
 
         public Form1()
         {
@@ -32,9 +33,10 @@ namespace SkinMeshAnimation
             var positionMatrix = Matrix.CreateTranslation(new Vector3(0, 0, 0));
             var viewMatrix = Matrix.CreateTranslation(viewTranslationVector) * Matrix.CreateScale(viewScale) * Matrix.CreateRotationX(thetaX) * Matrix.CreateRotationY(thetaY);
             var vpMatrix = viewMatrix * positionMatrix;
-            renderer.DrawModel(model, vpMatrix, boneData.matrices);
+            renderer.DrawModel(model, vpMatrix, boneData.matrices[frameNumber]);
             renderer.Render();
             e.Graphics.DrawImage(screen, 0, 0);
+            frameNumber = (frameNumber + 1) % boneData.matrices.GetLength(0);
         }
     }
 }
