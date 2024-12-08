@@ -9,8 +9,7 @@ namespace SkinMeshAnimation
         Vector3 viewTranslationVector = new(600f, 900f, 0);
         Vector3 lookAtPoint = new(0, 0, 0);
         Vector3 eyePoint = new(0.2f, 0.2f, 1);
-        readonly Model model = new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\初音ミク.pmx", true)
-        ;
+        readonly Model model = new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\初音ミク.pmx", true);
 
         public Form1()
         {
@@ -29,9 +28,12 @@ namespace SkinMeshAnimation
             var thetaX = -MathF.Atan2(lookDirection.Y, -lookDirection.Z);
             var screen = new Bitmap(e.ClipRectangle.Width, e.ClipRectangle.Height);
             var renderer = new Renderer(screen, lightVector, true, true);
-            var worldTransMatrix = Matrix.CreateTranslation(new Vector3(0, 0, 0));
-            var viewTransMatrix = Matrix.CreateTranslation(viewTranslationVector) * Matrix.CreateScale(viewScale) * Matrix.CreateRotationX(thetaX) * Matrix.CreateRotationY(thetaY);
-            renderer.DrawModel(model, viewTransMatrix * worldTransMatrix);
+            var positionMatrix = Matrix.CreateTranslation(new Vector3(0, 0, 0));
+            var viewMatrix = Matrix.CreateTranslation(viewTranslationVector) * Matrix.CreateScale(viewScale) * Matrix.CreateRotationX(thetaX) * Matrix.CreateRotationY(thetaY);
+            var vpMatrix = viewMatrix * positionMatrix;
+            var boneMatrices = new Matrix[model.numBone];
+            for (int i = 0; i < boneMatrices.Length; i++) boneMatrices[i] = Matrix.Identity;
+            renderer.DrawModel(model, vpMatrix, boneMatrices);
             renderer.Render();
             e.Graphics.DrawImage(screen, 0, 0);
         }

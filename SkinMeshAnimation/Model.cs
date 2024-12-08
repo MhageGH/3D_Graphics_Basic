@@ -13,8 +13,8 @@ namespace SkinMeshAnimation
         public Vector3 pos;             // 位置
         public Vector3 pseudoNormal;    // 疑似法線ベクトル
         public Vector2 uv;              // UV座標
-        public uint[] boneNumbers = new uint[4];
-        public float[] boneWeights = new float[4];
+        public List<uint> boneNumbers = new();
+        public List<float> boneWeights = new();
 
         public Vertex() { }
 
@@ -83,6 +83,7 @@ namespace SkinMeshAnimation
         public Vertex[] vertices;
         public Material[] materials;
         public Face[] faces;
+        public uint numBone;
 
         /// <param name="filename">MMDモデル用のPMXファイルをPMXエディターで開いてCSV出力したファイルの名前</param>
         public Model(String filename)
@@ -204,30 +205,30 @@ namespace SkinMeshAnimation
                     vertices[i].uv.Y = reader.ReadSingle();
                     reader.ReadBytes(16 * numberOfAdditionalUV);    // 使用しない
                     var weightTransformType = reader.ReadByte();
-                    uint ReadBoneNumber(byte s) => s == 1 ? reader.ReadByte() : s == 2 ? reader.ReadUInt16() : reader.ReadUInt32();
+                    uint ReadBoneNumber(byte size) => size == 1 ? reader.ReadByte() : size == 2 ? reader.ReadUInt16() : reader.ReadUInt32();
                     switch (weightTransformType)
                     {
                         case 0: // BDEF
-                            vertices[i].boneNumbers[0] = ReadBoneNumber(boneIndexSize);
-                            vertices[i].boneWeights[0] = 1;
+                            vertices[i].boneNumbers.Add(ReadBoneNumber(boneIndexSize));
+                            vertices[i].boneWeights.Add(1);
                             break;
                         case 1: // BDEF2
-                            for (int j = 0; j < 2; ++j) vertices[i].boneNumbers[j] = ReadBoneNumber(boneIndexSize);
-                            vertices[i].boneWeights[0] = reader.ReadSingle();
-                            vertices[i].boneWeights[1] = 1 - vertices[i].boneWeights[0];
+                            for (int j = 0; j < 2; ++j) vertices[i].boneNumbers.Add(ReadBoneNumber(boneIndexSize));
+                            vertices[i].boneWeights.Add(reader.ReadSingle());
+                            vertices[i].boneWeights.Add(1 - vertices[i].boneWeights[0]);
                             break;
                         case 2: // BDEF4
-                            for (int j = 0; j < 4; ++j) vertices[i].boneNumbers[j] = ReadBoneNumber(boneIndexSize);
-                            for (int j = 0; j < 4; ++j) vertices[i].boneWeights[j] = reader.ReadSingle();
+                            for (int j = 0; j < 4; ++j) vertices[i].boneNumbers.Add(ReadBoneNumber(boneIndexSize));
+                            for (int j = 0; j < 4; ++j) vertices[i].boneWeights.Add(reader.ReadSingle());
                             // boneWeightの合計が1でない場合の対応
                             float s = 0;
                             for (int j = 0; j < 4; ++j) s += vertices[i].boneWeights[j];
                             for (int j = 0; j < 4; ++j) vertices[i].boneWeights[j] /= s;    
                             break;
                         case 3: // SDEF →非対応だがBDEF2で代用
-                            for (int j = 0; j < 2; ++j) vertices[i].boneNumbers[j] = ReadBoneNumber(boneIndexSize);
-                            vertices[i].boneWeights[0] = reader.ReadSingle();
-                            vertices[i].boneWeights[1] = 1 - vertices[i].boneWeights[0];
+                            for (int j = 0; j < 2; ++j) vertices[i].boneNumbers.Add(ReadBoneNumber(boneIndexSize));
+                            vertices[i].boneWeights.Add(reader.ReadSingle());
+                            vertices[i].boneWeights.Add(1 - vertices[i].boneWeights[0]);
                             reader.ReadBytes(3 * 12);
                             break;
                         case 4: // QDEF
@@ -236,6 +237,8 @@ namespace SkinMeshAnimation
                     reader.ReadSingle();    // 使用しない
                 }
                 Debug.WriteLine("Last Vertex pos X: " + vertices[numberOfVertex - 1].pos.X);
+                foreach (var vertex in vertices) foreach (var boneNumber in vertex.boneNumbers) 
+                        if (boneNumber + 1 > numBone) numBone = boneNumber + 1;
 
                 // 面
                 var numberOfFace = reader.ReadInt32() / 3;  // 注意：PMX仕様.txtの「面数」は面の数ではなく面を構成している頂点の数を表す。そのため3で割る必要がある。

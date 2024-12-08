@@ -14,6 +14,8 @@ namespace SkinMeshAnimation
         Vector3 lightVector;
         bool useTextureMapping; 
         bool useGourauShading;
+        Stopwatch sw = new();
+        bool measure_time = true;
 
         public Renderer(Bitmap screen, Vector3 lightVector, bool useTextureMapping, bool useGourauShading)
         {
@@ -29,27 +31,54 @@ namespace SkinMeshAnimation
             for (int i = 0; i < zBuffers.GetLength(0); i++) for (int j = 0; j < zBuffers.GetLength(1); j++) zBuffers[i, j] = float.MaxValue; // 初期値
         }
 
-        public void DrawModel(Model model, Matrix matrix)
+        public void DrawModel(Model model, Matrix transMatrix)
         {
-            var sw = new Stopwatch();
-            sw.Start();
-            var transformedVertices = TransformVertices(model.vertices, matrix);
-            //Debug.WriteLine($"\tTarnsformVertices time : {sw.Elapsed}");
-            sw.Restart();
+            if (measure_time) sw.Start();
+            var transformedVertices = ApplyVpMatrix(model.vertices, transMatrix);
+            if (measure_time)
+            {
+                Debug.WriteLine($"\tTarnsformVertices time : {sw.Elapsed}");
+                sw.Restart();
+            }
             DrawPolygons(model, transformedVertices);
-            //Debug.WriteLine($"\tDrawPolygons time : {sw.Elapsed}");
-            sw.Stop();
+            if (measure_time)
+            {
+                Debug.WriteLine($"\tDrawPolygons time : {sw.Elapsed}");
+                sw.Stop();
+            }
         }
 
-        private Vertex[] TransformVertices(Vertex[] vertices, Matrix matrix)
+        public void DrawModel(Model model, Matrix vpMatrix, Matrix[] boneMatrices)
+        {
+            var vs0 = ApplyBones(model.vertices, boneMatrices);
+            var vs1 = ApplyVpMatrix(vs0, vpMatrix);
+            DrawPolygons(model, vs1);
+        }
+
+        private Vertex[] ApplyVpMatrix(Vertex[] vertices, Matrix vpMatrix)
         {
             var vertices_out = new Vertex[vertices.Length];
             for (int i = 0; i < vertices_out.Length; ++i)
             {
-                var pos = matrix * vertices[i].pos;
+                var pos = vpMatrix * vertices[i].pos;
                 // 頂点p上の法線ベクトルnのアフィン変換は原点始点の法線ベクトルから零ベクトルのアフィン変換を引けばよい
                 // ⇒　R2(R1(p + n + d1) + d2) – R2(R1(p + d1) + d2) = R2(R1(n + d1) + d2) – R2(R1(0 + d1) + d2)
-                var pn = Vector3.Normalize(matrix * vertices[i].pseudoNormal - matrix * new Vector3(0));
+                var pn = Vector3.Normalize(vpMatrix * vertices[i].pseudoNormal - vpMatrix * new Vector3(0));
+                vertices_out[i] = new Vertex(pos, pn, vertices[i].uv);
+            }
+            return vertices_out;
+        }
+
+        private Vertex[] ApplyBones(Vertex[] vertices, Matrix[] boneMatrices)
+        {
+            var vertices_out = new Vertex[vertices.Length];
+            for (int i = 0; i < vertices_out.Length; ++i)
+            {
+                var combMatrix = new Matrix();
+                for (int j = 0; j < vertices[i].boneNumbers.Count; ++j)
+                    combMatrix += boneMatrices[vertices[i].boneNumbers[j]] * vertices[i].boneWeights[j];
+                var pos = combMatrix * vertices[i].pos;
+                var pn = Vector3.Normalize(combMatrix * vertices[i].pseudoNormal - combMatrix * new Vector3(0));
                 vertices_out[i] = new Vertex(pos, pn, vertices[i].uv);
             }
             return vertices_out;

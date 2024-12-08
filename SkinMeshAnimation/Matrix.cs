@@ -88,5 +88,21 @@ namespace SkinMeshAnimation
             for (int i = 0; i < 4; ++i) for (int j = 0; j < 4; ++j) _v_out[i] += matrix.elements[i, j] * _v[j];
             return new Vector3(_v_out.X, _v_out.Y, _v_out.Z);
         }
+
+        public static Matrix operator *(Matrix matrix, float a)
+        {
+            var m = new Matrix();
+            for (int i = 0; i < 4; ++i) for (int j = 0; j < 4; ++j)
+                    m.elements[i, j] = matrix.elements[i, j] * a;
+            return m;
+        }
+
+        public static Matrix operator +(Matrix matrix1, Matrix matrix2)
+        {
+            var m = new Matrix();
+            for (int i = 0; i < 4; ++i) for (int j = 0; j < 4; ++j)
+                    m.elements[i, j] = matrix1.elements[i, j] + matrix2.elements[i, j];
+            return m;
+        }
     }
 }
