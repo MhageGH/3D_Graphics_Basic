@@ -8,6 +8,26 @@ namespace SkinMeshAnimation
 
         public Matrix() { }
 
+        public Matrix(float f00, float f01, float f02, float f03, float f10, float f11, float f12, float f13, float f20, float f21, float f22, float f23, float f30, float f31, float f32, float f33) 
+        {
+            elements[0, 0] = f00;
+            elements[0, 1] = f01;
+            elements[0, 2] = f02;
+            elements[0, 3] = f03;
+            elements[1, 0] = f10;
+            elements[1, 1] = f11;
+            elements[1, 2] = f12;
+            elements[1, 3] = f13;
+            elements[2, 0] = f20;
+            elements[2, 1] = f21;
+            elements[2, 2] = f22;
+            elements[2, 3] = f23;
+            elements[3, 0] = f30;
+            elements[3, 1] = f31;
+            elements[3, 2] = f32;
+            elements[3, 3] = f33;
+        }
+
         static public Matrix Identity
         {
             get

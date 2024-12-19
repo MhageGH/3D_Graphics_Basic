@@ -208,7 +208,7 @@ namespace SkinMeshAnimation
                     uint ReadBoneNumber(byte size) => size == 1 ? reader.ReadByte() : size == 2 ? reader.ReadUInt16() : reader.ReadUInt32();
                     switch (weightTransformType)
                     {
-                        case 0: // BDEF
+                        case 0: // BDEF1
                             vertices[i].boneNumbers.Add(ReadBoneNumber(boneIndexSize));
                             vertices[i].boneWeights.Add(1);
                             break;
