@@ -47,6 +47,7 @@
             DoubleBuffered = true;
             Name = "Form1";
             Text = "AntiAliasing";
+            FormClosing += Form1_FormClosing;
             Paint += Form1_Paint;
             ResumeLayout(false);
         }

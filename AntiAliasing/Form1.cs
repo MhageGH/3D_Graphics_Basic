@@ -1,17 +1,20 @@
 using System.Numerics;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
 
 namespace AntiAliasing
 {
     public partial class Form1 : Form
     {
-        readonly float viewScale = 45*2;
+        readonly float viewScale = 45 * 2;
         Vector3 lightVector = new(0, -0.5f, 1f);
-        Vector3 viewTranslationVector = new(600f*2, 900f*2, 0);
+        Vector3 viewTranslationVector = new(600f * 2, 900f * 2, 0);
         Vector3 lookAtPoint = new(0, 0, 0);
         Vector3 eyePoint = new(0.2f, 0.2f, 1);
         readonly Model model = new("../../../../Data/初音ミク/初音ミク.pmx", true);
         readonly BoneData boneData = new("../../../../Data/Bone.dat");
         int frameNumber = 0;
+        VideoWriter vw = new("movie.mp4", FourCC.H264, 30, new OpenCvSharp.Size(1000, 900));
 
         public Form1()
         {
@@ -38,10 +41,20 @@ namespace AntiAliasing
             renderer.Render();
             var screen = antiAliasing.GetDownSamplingImage();
             e.Graphics.DrawImage(screen, 0, 0);
+            
+            var mat = screen.Clone(new Rectangle(0, 0, vw.FrameSize.Width, vw.FrameSize.Height), screen.PixelFormat).ToMat();
+            vw.Write(mat);
+            mat.Dispose();
 
             frameNumber++;
-            int endFrameNumber = 10;
+            int endFrameNumber = 1000;
             if (frameNumber == boneData.matrices.GetLength(0) || frameNumber == endFrameNumber) Close();
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            vw.Release();
+            vw.Dispose();
         }
     }
 }
