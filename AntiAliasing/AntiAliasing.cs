@@ -1,38 +1,46 @@
-﻿namespace AntiAliasing
+﻿using System.Drawing.Imaging;
+
+namespace AntiAliasing
 {
     internal class AntiAliasing
     {
-        public Bitmap screen;
+        public Bitmap screen2;
 
         public AntiAliasing(Bitmap screen)
         {
-            this.screen = screen;
+            this.screen2 = new Bitmap(screen.Width * 2, screen.Height * 2);
         }
 
-        public void UpSampling()
+        public Bitmap GetDownSamplingImage()
         {
-            screen = new Bitmap(screen.Width * 2, screen.Height * 2);
-        }
+            var screenBmpData2 = screen2.LockBits(new Rectangle(0, 0, screen2.Width, screen2.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            var stride2 = screenBmpData2.Stride;
+            var screenImgData2 = new byte[stride2 * screen2.Height];
+            System.Runtime.InteropServices.Marshal.Copy(screenBmpData2.Scan0, screenImgData2, 0, screenImgData2.Length);
+            screen2.UnlockBits(screenBmpData2);
 
-        public void DownSampling()
-        {
-            var s = new Bitmap(screen.Width / 2, screen.Height / 2);
-            for (int i = 0; i < s.Width; i++)
+            var stride = stride2 / 2;
+            var screenImgData = new byte[stride * screen2.Height / 2];
+            for (int i = 0; i < screen2.Height / 2; ++i)
             {
-                for (int j = 0; j < s.Height; j++)
+                for (int j = 0; j < screen2.Width / 2; ++j)
                 {
-                    var c1 = screen.GetPixel(i * 2, j * 2);
-                    var c2 = screen.GetPixel(i * 2 + 1, j * 2);
-                    var c3 = screen.GetPixel(i * 2, j * 2 + 1);
-                    var c4 = screen.GetPixel(i * 2 + 1, j * 2 + 1);
-                    var a = (c1.A + c2.A + c3.A + c4.A) / 4;
-                    var r = (c1.R + c2.R + c3.R + c4.R) / 4;
-                    var g = (c1.G + c2.G + c3.G + c4.G) / 4;
-                    var b = (c1.B + c2.B + c3.B + c4.B) / 4;
-                    s.SetPixel(i, j, Color.FromArgb(a, r, g, b));
+                    for (int k = 0; k < 4; ++k)
+                    {
+                        UInt16 c = screenImgData2[stride2 * i * 2 + 4 * j * 2 + k];
+                        c += screenImgData2[stride2 * i * 2 + 4 * j * 2 + 4 + k];
+                        c += screenImgData2[stride2 * (i * 2 + 1) + 4 * j * 2 + k];
+                        c += screenImgData2[stride2 * (i * 2 + 1) + 4 * j * 2 + 4 + k];
+                        screenImgData[stride * i + 4 * j + k] = (byte)(c / 4);
+                    }
                 }
             }
-            screen = s;
+
+            var s = new Bitmap(screen2.Width / 2, screen2.Height / 2);
+            var screenBmpData = s.LockBits(new Rectangle(0, 0, s.Width, s.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            System.Runtime.InteropServices.Marshal.Copy(screenImgData, 0, screenBmpData.Scan0, screenImgData.Length);
+            s.UnlockBits(screenBmpData);
+            return s;
         }
     }
 }
