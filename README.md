@@ -1,15 +1,17 @@
 # 【ゆっくり解説】3Dグラフィックスの基礎 【プログラミング】
 動画シリーズ [3Dグラフィックスの基礎](https://youtube.com/playlist?list=PLeSkrKyDEPCgeO49SiwWdutcKScdq-PwD&si=rHEoyirTiL_AfWDj) で解説しているコードです。
-![Y_Moment](3D_Graphics1Y_Moment.jpg)
+![Y_Moment](サムネ.png)
 
 ## 開発環境
 これをインストールしていれば、本WebサイトのCodeボタンから「Open with Visual Studio」でソースコードを丸ごとダウンロード(クローン)出来ます。
 - [Visual Studio 2022](https://visualstudio.microsoft.com/ja/downloads/)
 　
 ## プロジェクトについて
-Visual 3D_Explanation.slnを開き、Polygonプロジェクトをスタートアッププロジェクトに設定して実行すればプログラムが動きます。
-- Polygon：第一回の完成品のプロジェクトです。
-- GouraudShading：第二回の完成品のプロジェクトです。
-- Texture：第三回及び第四回の完成品のプロジェクトです。
-- Camera：第六回の完成品のプロジェクトです。
-- 他はテスト用プロジェクトです。
+Visual 3D_Explanation.slnを開き、Polygonプロジェクトをスタートアッププロジェクトに設定して実行すればプログラムが動きます。各解説に関連するプロジェクトは以下の通りです。
+- 3Dグラフィックスの基礎1 ポリゴン: Polygon, Triangle, WireFrame, ZBuffer
+- 3Dグラフィックスの基礎2 ベクトル: GouraudShading
+- 3Dグラフィックスの基礎3 テクスチャ: Texture
+- 3Dグラフィックスの基礎4 3Dモデルファイル: Texture
+- 3Dグラフィックスの基礎5 行列の基礎: Camera
+- 3Dグラフィックスの基礎6 行列の応用: Camera
+- 3Dグラフィックスの基礎7 ポリゴン: SkinMeshAnimation
