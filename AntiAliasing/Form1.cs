@@ -1,15 +1,15 @@
 using System.Numerics;
 
-namespace SkinMeshAnimation
+namespace AntiAliasing
 {
     public partial class Form1 : Form
     {
-        readonly float viewScale = 45;
+        readonly float viewScale = 45*2;
         Vector3 lightVector = new(0, -0.5f, 1f);
-        Vector3 viewTranslationVector = new(600f, 900f, 0);
+        Vector3 viewTranslationVector = new(600f*2, 900f*2, 0);
         Vector3 lookAtPoint = new(0, 0, 0);
         Vector3 eyePoint = new(0.2f, 0.2f, 1);
-        readonly Model model = new("D:\\OneDrive\\ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\åˆéŸ³ãƒŸã‚¯.pmx", true); // ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ãŸ3Dãƒ¢ãƒ‡ãƒ«ã®ãƒ‘ã‚¹åã«å¤‰æ›´ã—ã¦ä¸‹ã•ã„
+        readonly Model model = new("D:\\OneDrive\\ƒhƒLƒ…ƒƒ“ƒg\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\‰‰¹ƒ~ƒN.pmx", true); // ƒ_ƒEƒ“ƒ[ƒh‚µ‚½3Dƒ‚ƒfƒ‹‚ÌƒpƒX–¼‚É•ÏX‚µ‚Ä‰º‚³‚¢
         readonly BoneData boneData = new();
         int frameNumber = 0;
 
@@ -28,15 +28,21 @@ namespace SkinMeshAnimation
             var lookDirection = Vector3.Normalize(lookAtPoint - eyePoint);
             var thetaY = -MathF.Atan2(lookDirection.X, -lookDirection.Z);
             var thetaX = -MathF.Atan2(lookDirection.Y, -lookDirection.Z);
-            var screen = new Bitmap(e.ClipRectangle.Width, e.ClipRectangle.Height);
+            var antiAliasing = new AntiAliasing(new Bitmap(e.ClipRectangle.Width, e.ClipRectangle.Height));
+            antiAliasing.UpSampling();
+            var screen = antiAliasing.screen;
             var renderer = new Renderer(screen, lightVector, true, true);
             var positionMatrix = Matrix.CreateTranslation(new Vector3(0, 0, 0));
             var viewMatrix = Matrix.CreateTranslation(viewTranslationVector) * Matrix.CreateScale(viewScale) * Matrix.CreateRotationX(thetaX) * Matrix.CreateRotationY(thetaY);
             var vpMatrix = viewMatrix * positionMatrix;
             renderer.DrawModel(model, vpMatrix, boneData.matrices[frameNumber]);
             renderer.Render();
+            antiAliasing.DownSampling();
+            screen = antiAliasing.screen;
             e.Graphics.DrawImage(screen, 0, 0);
+
             //frameNumber = (frameNumber + 1) % boneData.matrices.GetLength(0);
+
         }
     }
 }

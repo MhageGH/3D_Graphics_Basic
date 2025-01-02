@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace SkinMeshAnimation
+namespace AntiAliasing
 {
     public class Matrix
     {

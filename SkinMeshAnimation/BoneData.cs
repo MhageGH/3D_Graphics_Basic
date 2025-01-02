@@ -1,6 +1,6 @@
 namespace SkinMeshAnimation
 {
-	internal class BoneData
+	public class BoneData
 	{
 		public Matrix[][] matrices;
 		public BoneData()     // 初音ミク.pmx用ボーンデータ
