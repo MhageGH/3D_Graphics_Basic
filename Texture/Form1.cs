@@ -11,8 +11,8 @@ namespace Texture
         const float light_thetaX = 1.5f;
         Vector3 light = new(0, MathF.Cos(light_thetaX), MathF.Sin(light_thetaX));   // 光の方向ベクトル
         Vector3 offset = new(300f, 450f, 0);                                        // 平行移動の量
-        //Model model = new("../../../Model/Shanghai.csv");
-        Model model = new("../../../Model/Shanghai.pmx", true);
+        //Model model = new("../../../../Data/Shanghai/Shanghai.csv");
+        Model model = new("../../../../Data/Shanghai/Shanghai.pmx", true);
 
         public Form1()
         {

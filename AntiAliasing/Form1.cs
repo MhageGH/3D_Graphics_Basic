@@ -9,7 +9,7 @@ namespace AntiAliasing
         Vector3 viewTranslationVector = new(600f*2, 900f*2, 0);
         Vector3 lookAtPoint = new(0, 0, 0);
         Vector3 eyePoint = new(0.2f, 0.2f, 1);
-        readonly Model model = new("D:\\OneDrive\\ドキュメント\\MyProgram\\MMD\\MikuMikuDance_v909x64\\UserFile\\Model\\初音ミク.pmx", true); // ダウンロードした3Dモデルのパス名に変更して下さい
+        readonly Model model = new("../../../../Data/初音ミク/初音ミク.pmx", true);
         readonly BoneData boneData = new();
         int frameNumber = 0;
 
