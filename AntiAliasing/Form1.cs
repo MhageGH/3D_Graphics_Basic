@@ -10,7 +10,7 @@ namespace AntiAliasing
         Vector3 lookAtPoint = new(0, 0, 0);
         Vector3 eyePoint = new(0.2f, 0.2f, 1);
         readonly Model model = new("../../../../Data/初音ミク/初音ミク.pmx", true);
-        readonly BoneData boneData = new();
+        readonly BoneData boneData = new("../../../../Data/Bone.dat");
         int frameNumber = 0;
 
         public Form1()
@@ -39,8 +39,9 @@ namespace AntiAliasing
             var screen = antiAliasing.GetDownSamplingImage();
             e.Graphics.DrawImage(screen, 0, 0);
 
-            //frameNumber = (frameNumber + 1) % boneData.matrices.GetLength(0);
-
+            frameNumber++;
+            int endFrameNumber = 10;
+            if (frameNumber == boneData.matrices.GetLength(0) || frameNumber == endFrameNumber) Close();
         }
     }
 }
